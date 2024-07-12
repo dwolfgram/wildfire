@@ -13,6 +13,7 @@ import {
   useFollowUser,
   useUnfollowUser,
 } from "@/api/queries/follow"
+import Toast from "react-native-toast-message"
 
 export enum FollowListTypes {
   followers = "followers",
@@ -32,10 +33,13 @@ const FollowListScreen = ({ linkHref }: FollowListScreenProps) => {
   const {
     data: followers = [],
     isLoading: isLoadingFollowers,
-    error,
+    error: followersError,
   } = useFetchFollowersQuery(userId!, type === FollowListTypes.followers)
-  const { data: followings = [], isLoading: isLoadingFollowing } =
-    useFetchFollowingQuery(userId!, type === FollowListTypes.following)
+  const {
+    data: followings = [],
+    isLoading: isLoadingFollowing,
+    error: followingError,
+  } = useFetchFollowingQuery(userId!, type === FollowListTypes.following)
   const router = useRouter()
 
   const { mutateAsync: followUser } = useFollowUser()
@@ -51,10 +55,23 @@ const FollowListScreen = ({ linkHref }: FollowListScreenProps) => {
   )
 
   useEffect(() => {
-    if (error) {
-      console.log("Make toast!")
+    let message = ""
+    if (followersError) {
+      message = "unable to fetch followers"
+    } else {
+      message = "uable to fetch following"
     }
-  }, [error])
+    if (followersError || followingError) {
+      Toast.show({
+        type: "error",
+        text1: "error",
+        text2: message,
+        position: "top",
+        topOffset: 54,
+        visibilityTime: 5000,
+      })
+    }
+  }, [followersError, followingError])
 
   return (
     <ThemedSafeAreaView className="h-full px-5">

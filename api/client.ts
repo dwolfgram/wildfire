@@ -24,7 +24,7 @@ const baseApi: AxiosInstance = axios.create({
 
 const fetchNewTokens = async (): Promise<TokenResponse> => {
   const refreshToken = getSpotifyRefreshToken()
-  const response = await baseApi.post<TokenResponse>("/auth/refresh_token", {
+  const response = await baseApi.post<TokenResponse>("/auth/refresh-token", {
     refreshToken,
   })
   return response.data

@@ -1,41 +1,72 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, StyleSheet } from "react-native"
+import { View, useColorScheme } from "react-native"
 import Slider from "@react-native-community/slider"
 import { ThemedText } from "./ThemedText"
 
-const formatTime = (timeMs: number) => {
-  const totalSeconds = Math.floor(timeMs / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+function display(seconds: number) {
+  const format = (val: number) => `0${Math.floor(val)}`.slice(-2)
+  const minutes = (seconds % 3600) / 60
+  return [minutes, seconds % 60].map(format).join(":")
 }
 
 interface ProgressBarProps {
+  progress: number
   duration: number
-  position: number
-  onSeek: (duration: number) => void
+  onSlideEnd?: (duration: number) => void
+  onValueChange?: (duration: number) => void
+  onSlideStart?: () => void
+  showTimes?: boolean
 }
 
-const ProgressBar = ({ duration, position, onSeek }: ProgressBarProps) => {
-  const remainingTime = duration - position
+const ProgressBar = ({
+  progress,
+  duration,
+  onSlideEnd,
+  onValueChange,
+  onSlideStart,
+  showTimes = true,
+}: ProgressBarProps) => {
+  const colorScheme = useColorScheme()
+  const isDarkMode = colorScheme === "dark"
+
+  const handleStartSeek = () => {
+    onSlideStart && onSlideStart()
+  }
+
+  const handleEndSeek = (value: number) => {
+    onSlideEnd && onSlideEnd(value)
+  }
+
+  const remainingTime = duration - progress
 
   return (
-    <View className="w-full px-4">
+    <View className="w-full">
       <Slider
-        className="w-full h-[10px]"
+        step={1000}
+        lowerLimit={0}
+        upperLimit={duration - 2000}
+        style={{ height: 5 }}
+        value={progress}
         minimumValue={0}
-        maximumValue={duration}
-        value={position}
-        onValueChange={(value) => null}
-        onSlidingComplete={onSeek}
-        minimumTrackTintColor="black"
-        maximumTrackTintColor="#E5E7EB"
-        thumbTintColor="black"
+        maximumValue={duration - 2000}
+        onSlidingStart={handleStartSeek}
+        onValueChange={onValueChange}
+        onSlidingComplete={handleEndSeek}
+        minimumTrackTintColor={isDarkMode ? "#FFF" : "black"}
+        maximumTrackTintColor={isDarkMode ? "#444" : "#E5E7EB"}
+        thumbTintColor={isDarkMode ? "#fff" : "#000"}
+        tapToSeek={false}
       />
-      <View className="flex-row justify-between">
-        <ThemedText>{formatTime(position)}</ThemedText>
-        <ThemedText>-{formatTime(remainingTime)}</ThemedText>
-      </View>
+      {showTimes && (
+        <View className="flex-row justify-between">
+          <ThemedText className="text-gray-500 dark:text-neutral-400">
+            {display(progress / 1000)}
+          </ThemedText>
+          <ThemedText className="text-gray-500 dark:text-neutral-400">
+            -{display(remainingTime / 1000)}
+          </ThemedText>
+        </View>
+      )}
     </View>
   )
 }

@@ -6,12 +6,15 @@ export const queueAtom = atom<Partial<Song>[]>([])
 export const currentSongIndexAtom = atom(0)
 export const isPlayingAtom = atom(false)
 export const selectedDeviceAtom = atom<Device | null>(null)
+export const currentPositionAtom = atom(0)
 
-export const currentSongAtom = atom<Partial<Song> | null>((get) => {
-  const queue = get(queueAtom)
-  const currentIndex = get(currentSongIndexAtom)
-  return queue[currentIndex] || null
-})
+export const currentSongAtom = atom<(Partial<Song> & { key?: number }) | null>(
+  (get) => {
+    const queue = get(queueAtom)
+    const currentIndex = get(currentSongIndexAtom)
+    return queue[currentIndex] || null
+  }
+)
 
 export const nextSongInQueueAtom = atom<Partial<Song> | null>((get) => {
   const queue = get(queueAtom)
@@ -31,6 +34,8 @@ export const playNextAtom = atom(null, (get, set) => {
   if (currentIndex < queue.length - 1) {
     set(currentSongIndexAtom, currentIndex + 1)
     set(isPlayingAtom, true)
+  } else {
+    set(isPlayingAtom, false)
   }
 })
 

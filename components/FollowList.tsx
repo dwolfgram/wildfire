@@ -42,13 +42,13 @@ const FollowItem = ({
       asChild
     >
       <Pressable>
-        <ThemedView className="flex-row items-center justify-between mb-3">
-          <ThemedView className="flex-row items-center gap-3">
+        <ThemedView className="flex-row items-center justify-between border-b border-gray-50 dark:border-neutral-800 py-1.5">
+          <ThemedView className="flex-row items-center gap-x-3">
             <Image
               className="rounded-full"
               source={{ uri: user.pfp }}
-              width={40}
-              height={40}
+              width={50}
+              height={50}
             />
             <ThemedView className="w-[200px]">
               <ThemedText
@@ -72,7 +72,7 @@ const FollowItem = ({
               titleStyle={[
                 user?.isFollowingBack &&
                   tw`text-gray-800 dark:text-neutral-300`,
-                tw`font-semibold text-base`,
+                tw`font-semibold text-sm`,
               ]}
               title={user.isFollowingBack ? "unfollow" : "follow"}
               activeOpacity={0.8}

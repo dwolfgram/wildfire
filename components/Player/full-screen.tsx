@@ -1,21 +1,29 @@
-import React from "react"
-import { Image, Pressable, Text, View, useColorScheme } from "react-native"
-import { Ionicons, Feather as Icon } from "@expo/vector-icons"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { ThemedText } from "../ThemedText"
-import { useAtom } from "jotai"
+import React, { useCallback } from "react"
 import {
-  currentSongAtom,
-  isPlayingAtom,
-  playNextAtom,
-  playPreviousAtom,
-  togglePlayPauseAtom,
-} from "@/state/player"
+  Image,
+  Pressable,
+  View,
+  useColorScheme,
+  Dimensions,
+} from "react-native"
+import { Ionicons, Feather as Icon } from "@expo/vector-icons"
+import { ThemedText } from "../ThemedText"
 import usePlayer from "@/hooks/player/usePlayer"
 import { ThemedView } from "../ThemedView"
 import ProgressBar from "../ProgressBar"
+import Toast from "react-native-toast-message"
+import { toastConfig } from "@/lib/toast"
 
-const FullScreenPlayer = ({ onPress }: { onPress: any }) => {
+const FullScreenPlayer = ({
+  setProgress,
+  progress,
+  onPress,
+}: {
+  setProgress: (value: number) => void
+  progress: number
+  onPress: any
+}) => {
+  const screenWidth = Dimensions.get("window").width
   const {
     isPlaying,
     currentSong,
@@ -23,21 +31,30 @@ const FullScreenPlayer = ({ onPress }: { onPress: any }) => {
     playNextSong,
     playSong,
     pauseSong,
-    currentPosition,
+    seek,
   } = usePlayer()
 
   const colorScheme = useColorScheme()
   const iconColor = colorScheme === "dark" ? "#FFF" : "#222"
 
+  const handleOnSeekEnd = useCallback(
+    async (value: number) => {
+      if (value <= currentSong?.durationMs!) {
+        await seek(value, setProgress)
+      }
+    },
+    [seek]
+  )
+
   return (
     <ThemedView className="flex-1 w-full h-full px-5 pt-5">
       <View className="m-0">
-        <View className="flex-row justify-between">
-          <Pressable style={{ padding: 10 }} onPress={onPress}>
+        <View className="flex-row items-center justify-between py-4">
+          <Pressable onPress={onPress}>
             <Icon name="chevron-down" color={iconColor} size={24} />
           </Pressable>
-          <ThemedText className=" p-4">{currentSong?.artistName}</ThemedText>
-          <Pressable style={{ padding: 10 }} onPress={onPress}>
+          <ThemedText>{currentSong?.artistName}</ThemedText>
+          <Pressable onPress={onPress}>
             <Icon name="more-horizontal" color={iconColor} size={24} />
           </Pressable>
         </View>
@@ -45,14 +62,19 @@ const FullScreenPlayer = ({ onPress }: { onPress: any }) => {
           source={{
             uri: currentSong?.albumImage,
           }}
-          className="my-4 w-full h-[300px] self-center"
+          style={{ height: screenWidth - 20 }}
+          className="my-4 w-full self-center"
         />
         <View className="flex-row justify-between items-center">
           <View className="w-[80%]">
-            <ThemedText className="text-xl font-semibold">
+            <ThemedText
+              className="text-xl font-semibold"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {currentSong?.name}
             </ThemedText>
-            <ThemedText className="text-gray-500">
+            <ThemedText className="text-gray-500 dark:text-neutral-400">
               {currentSong?.artistName}
             </ThemedText>
           </View>
@@ -60,58 +82,50 @@ const FullScreenPlayer = ({ onPress }: { onPress: any }) => {
             style={{ opacity: 0.5 }}
             name="heart-outline"
             size={32}
-            color={"#4b5563"}
+            color={iconColor}
           />
         </View>
-        <View>
+        <View className="my-3">
           <ProgressBar
-            position={currentPosition}
+            progress={progress}
             duration={currentSong?.durationMs!}
-            onSeek={(dur: number) => null}
+            onSlideEnd={handleOnSeekEnd}
           />
         </View>
         <View className="flex-row justify-evenly items-center">
-          {/* <Ionicons
-            name="shuffle-sharp"
-            style={{ opacity: 0.75 }}
-            color={iconColor}
-            size={30}
-          /> */}
-          <Ionicons
-            name="play-skip-back-sharp"
-            onPress={playPreviousSong}
-            color={iconColor}
-            size={50}
-          />
-          {isPlaying ? (
+          <Pressable
+            className="opacity-100 active:opacity-60 items-center justify-center"
+            onPress={async () => await playPreviousSong(progress, setProgress)}
+          >
+            <Ionicons name="play-skip-back-sharp" color={iconColor} size={50} />
+          </Pressable>
+          <Pressable
+            className="opacity-100 active:opacity-60 items-center justify-center"
+            onPress={
+              isPlaying
+                ? pauseSong
+                : async () => await playSong(progress, setProgress)
+            }
+          >
+            {isPlaying ? (
+              <Ionicons name="pause-circle-sharp" color={iconColor} size={90} />
+            ) : (
+              <Ionicons name="play-circle-sharp" color={iconColor} size={90} />
+            )}
+          </Pressable>
+          <Pressable
+            className="opacity-100 active:opacity-60 items-center justify-center"
+            onPress={() => playNextSong(setProgress)}
+          >
             <Ionicons
-              onPress={pauseSong}
-              name="pause-circle-sharp"
+              name="play-skip-forward-sharp"
               color={iconColor}
-              size={90}
+              size={50}
             />
-          ) : (
-            <Ionicons
-              onPress={playSong}
-              name="play-circle-sharp"
-              color={iconColor}
-              size={90}
-            />
-          )}
-          <Ionicons
-            name="play-skip-forward-sharp"
-            onPress={playNextSong}
-            color={iconColor}
-            size={50}
-          />
-          {/* <Ionicons
-            name="repeat-sharp"
-            style={{ opacity: 0.75 }}
-            color={iconColor}
-            size={30}
-          /> */}
+          </Pressable>
         </View>
       </View>
+      <Toast config={toastConfig} />
     </ThemedView>
   )
 }

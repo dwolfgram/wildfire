@@ -1,5 +1,9 @@
 import { Redirect, Stack, Tabs } from "expo-router"
-import React from "react"
+import React, { useEffect } from "react"
+import {
+  PlayerState,
+  remote as SpotifyRemote,
+} from "react-native-spotify-remote"
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon"
 import useAuth from "@/hooks/auth/useAuth"
@@ -8,12 +12,40 @@ import Player from "@/components/Player"
 import { TAB_BAR_HEIGHT } from "@/constants/tabBar"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useAtom } from "jotai"
-import { currentSongAtom } from "@/state/player"
+import { currentSongAtom, isPlayingAtom } from "@/state/player"
 
 export default function TabLayout() {
   const { isSignedIn, session } = useAuth()
   const { bottom } = useSafeAreaInsets()
   const [currentSong] = useAtom(currentSongAtom)
+  const [isPlaying, setIsPlaying] = useAtom(isPlayingAtom)
+
+  const handleRemoteConnected = () => console.log("REMOTE CONNECTED!")
+  const handleRemoteDisconnected = () => console.log("REMOTE DISCONNECTED!")
+
+  useEffect(() => {
+    const remoteConnectedListener = SpotifyRemote.addListener(
+      "remoteConnected",
+      handleRemoteConnected
+    )
+    const remoteDisconnectedListener = SpotifyRemote.addListener(
+      "remoteDisconnected",
+      handleRemoteDisconnected
+    )
+    const playerStateListener = SpotifyRemote.addListener(
+      "playerStateChanged",
+      (data: PlayerState) => {
+        // @ts-ignore
+        // setIsPlaying(!data[0].isPaused)
+      }
+    )
+
+    return () => {
+      remoteConnectedListener.remove()
+      remoteDisconnectedListener.remove()
+      playerStateListener.remove()
+    }
+  }, [])
 
   if (!isSignedIn) {
     return <Redirect href="(auth)" />

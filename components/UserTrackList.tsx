@@ -1,19 +1,21 @@
-import { FlatList, Pressable, Image } from "react-native"
+import { FlatList, Pressable, Image, FlatListProps } from "react-native"
 import React, { ReactElement, useCallback } from "react"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
 import { UserTrack } from "@/lib/types/user-track"
 import { Link } from "expo-router"
-import { formatSpotifyTrackToSong } from "@/utils/spotifyTrackToSong"
 import tw from "@/lib/tailwind"
 import { Ionicons } from "@expo/vector-icons"
-import { useAtom } from "jotai"
-import { addToQueueAtom } from "@/state/player"
+import usePlayer from "@/hooks/player/usePlayer"
+import Track from "./Track"
 
 interface UserTrackListProps {
   data: UserTrack[] | null
   isLoading: boolean
   linkHref: string
+  onEndReached?: () => void
+  onEndReachedThreshold?: number
+  footer?: ReactElement
   header?: ReactElement
 }
 
@@ -29,47 +31,14 @@ const UserTrackItem = ({
   index: number
 }) => {
   return (
-    <Pressable onPress={() => handleAddToQueue(index)} className="px-5">
-      <ThemedView className="flex-row items-center justify-between mt-3">
-        <ThemedView className="flex-row items-center gap-x-3">
-          <Image source={{ uri: track.albumImage }} width={44} height={44} />
-          <ThemedView className="w-[200px]">
-            <ThemedText
-              className="text-base"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {track.name}
-            </ThemedText>
-            <ThemedText className="text-xs text-gray-600 dark:text-neutral-400">
-              {track.artistName}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-        <Link
-          href={{
-            pathname: linkHref,
-            params: {
-              song: JSON.stringify(track),
-              userIdToCredit: track.userId,
-            },
-          }}
-          asChild
-        >
-          <Pressable
-            onPress={() => null}
-            className="rounded-full bg-orange-600 active:bg-orange-700 w-[34px] h-[34px] pl-0.5 items-center justify-center"
-          >
-            <Ionicons
-              className="relative right-[5px]"
-              name="send"
-              color="#FFFFFF"
-              size={17}
-            />
-          </Pressable>
-        </Link>
-      </ThemedView>
-    </Pressable>
+    <ThemedView className={`${index === 0 && "mt-2"}`}>
+      <Track
+        track={track}
+        onPress={() => handleAddToQueue(index)}
+        userId={track.userId}
+        sendSongHref={linkHref}
+      />
+    </ThemedView>
   )
 }
 
@@ -78,13 +47,17 @@ const UserTrackList = ({
   header,
   isLoading,
   linkHref,
+  onEndReached,
+  onEndReachedThreshold,
+  footer,
 }: UserTrackListProps) => {
-  const [_, addToQueue] = useAtom(addToQueueAtom)
+  const { addToQueueAndPlay, currentSong } = usePlayer()
 
   const handleAddToQueue = useCallback(
     (index: number) => {
       if (data) {
-        addToQueue(data.slice(index))
+        const songsToAdd = data.slice(index)
+        addToQueueAndPlay(songsToAdd)
       }
     },
     [data]
@@ -101,7 +74,7 @@ const UserTrackList = ({
         />
       )}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={tw`pt-2 pb-2`}
+      contentContainerStyle={[tw`pb-10`, currentSong && { paddingBottom: 110 }]}
       ListHeaderComponent={header}
       ListEmptyComponent={
         <ThemedView className="items-center justify-center pt-4">
@@ -111,6 +84,15 @@ const UserTrackList = ({
         </ThemedView>
       }
       showsVerticalScrollIndicator={false}
+      onEndReached={onEndReached}
+      ListFooterComponent={footer}
+      onEndReachedThreshold={onEndReachedThreshold}
+      maxToRenderPerBatch={10}
+      initialNumToRender={10}
+      extraData={{
+        linkHref,
+        handleAddToQueue,
+      }}
     />
   )
 }

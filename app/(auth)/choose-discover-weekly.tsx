@@ -23,7 +23,7 @@ const PlaylistItem = ({
   return (
     <Pressable onPress={() => onSelect(playlist.id)}>
       <ThemedView
-        className={`mb-3 rounded-md px-3 py-3 ${
+        className={`mb-2 rounded-md px-3 py-3 ${
           isSelected
             ? "bg-orange-50 dark:bg-orange-900"
             : "bg-gray-50 dark:bg-neutral-800"
@@ -65,7 +65,7 @@ const PlaylistItem = ({
 }
 
 const ChooseDiscoverWeeklyScreen = () => {
-  const { data: playlists } = useFetchUserDiscoverWeeklyPlaylists()
+  const { data: playlists, isFetching } = useFetchUserDiscoverWeeklyPlaylists()
   const [selectedPlaylistId, setSelectedPlaylistId] = useState("")
   const { selectDiscoverWeekly, isLoading } = useSelectDiscoverWeekly()
 
@@ -79,7 +79,7 @@ const ChooseDiscoverWeeklyScreen = () => {
 
   return (
     <ThemedSafeAreaView className="h-full px-5">
-      <ThemedView className="items-center mt-1">
+      <ThemedView className="items-center mt-1 pb-2">
         <ThemedText type="defaultSemiBold">discover weekly</ThemedText>
         <ThemedText className="text-sm text-gray-700 text-center dark:text-neutral-300 mt-1">
           we found multiple discover weekly playlists saved to your spotify.
@@ -95,6 +95,13 @@ const ChooseDiscoverWeeklyScreen = () => {
             {...props}
           />
         )}
+        ListEmptyComponent={
+          <ThemedView className="items-center justify-center pt-4">
+            <ThemedText className="opacity-50">
+              {isFetching ? "loading..." : "no results"}
+            </ThemedText>
+          </ThemedView>
+        }
         contentContainerStyle={tw`pt-4`}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}

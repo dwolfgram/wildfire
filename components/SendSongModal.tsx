@@ -16,6 +16,7 @@ import useFuse from "@/hooks/useFuse"
 import { useFetchFollowersQuery } from "@/api/queries/follow"
 import { FetchFollowersResponse } from "@/api/endpoints/follow"
 import { useSendSong } from "@/api/queries/song"
+import Toast from "react-native-toast-message"
 
 const FollowerItem = ({
   item: user,
@@ -87,8 +88,15 @@ const SendSongModal = () => {
     })
 
     if (sentSongs?.length && sentSongs.length > 0) {
-      // success toast
       router.back()
+      Toast.show({
+        type: "success",
+        text1: "success",
+        text2: "song has been sent",
+        position: "top",
+        topOffset: 54,
+        visibilityTime: 5000,
+      })
     }
   }
 
@@ -146,6 +154,7 @@ const SendSongModal = () => {
           />
         )}
         numColumns={3}
+        keyboardDismissMode={"on-drag"}
         keyExtractor={(item) => item.id}
         contentContainerStyle={tw`pt-4 pb-3`}
         ListEmptyComponent={

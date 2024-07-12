@@ -6,6 +6,7 @@ import tw from "twrnc"
 import { User } from "@/lib/types/user"
 import { Link } from "expo-router"
 import { UserSearchResults } from "@/hooks/search/useSearchUsers"
+import usePlayer from "@/hooks/player/usePlayer"
 
 interface SearchUsersListProps {
   data: UserSearchResults
@@ -24,23 +25,21 @@ const SearchUserItem = ({ item: user }: { item: User; index: number }) => {
       asChild
     >
       <Pressable>
-        <ThemedView className="flex-row items-center justify-between mb-3">
-          <ThemedView className="flex-row items-center gap-3">
-            <Image
-              className="rounded-full"
-              source={{ uri: user.pfp }}
-              width={40}
-              height={40}
-            />
-            <ThemedView className="w-[200px]">
-              <ThemedText
-                className="text-base"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {user.username}
-              </ThemedText>
-            </ThemedView>
+        <ThemedView className="flex-row items-center gap-x-3 border-b border-gray-50 dark:border-neutral-800 py-1.5">
+          <Image
+            className="rounded-full"
+            source={{ uri: user.pfp }}
+            width={50}
+            height={50}
+          />
+          <ThemedView className="w-[200px]">
+            <ThemedText
+              className="text-base"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {user.username}
+            </ThemedText>
           </ThemedView>
         </ThemedView>
       </Pressable>
@@ -49,12 +48,14 @@ const SearchUserItem = ({ item: user }: { item: User; index: number }) => {
 }
 
 const UserSearchList = ({ data, isLoading, query }: SearchUsersListProps) => {
+  const { currentSong } = usePlayer()
   return (
     <FlatList
       renderItem={SearchUserItem}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={tw`pt-2`}
+      contentContainerStyle={[tw`pt-2`, currentSong && { paddingBottom: 85 }]}
       data={data}
+      keyboardDismissMode={"on-drag"}
       ListEmptyComponent={
         <ThemedView className="items-center justify-center pt-1">
           <ThemedText className="opacity-50">

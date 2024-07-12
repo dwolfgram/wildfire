@@ -1,22 +1,39 @@
 import React from "react"
-import { View, TouchableWithoutFeedback, Image } from "react-native"
+import { View, Image, Pressable, useColorScheme } from "react-native"
 import { ThemedText } from "../ThemedText"
 import { Ionicons } from "@expo/vector-icons"
-import { useAtom } from "jotai"
-import {
-  currentSongAtom,
-  isPlayingAtom,
-  togglePlayPauseAtom,
-} from "@/state/player"
+import usePlayer from "@/hooks/player/usePlayer"
 
-const MiniPlayer = ({ onPress }: { onPress: any }) => {
-  const [currentSong] = useAtom(currentSongAtom)
-  const [isPlaying] = useAtom(isPlayingAtom)
-  const [, togglePlayPause] = useAtom(togglePlayPauseAtom)
+const MiniPlayer = ({
+  progress,
+  setProgress,
+  onPress,
+}: {
+  progress: number
+  setProgress: (value: number) => void
+  onPress: any
+}) => {
+  const colorScheme = useColorScheme()
+  const { currentSong, isPlaying, playSong, pauseSong } = usePlayer()
 
   return (
-    <TouchableWithoutFeedback className="h-full w-full" onPress={onPress}>
-      <View className="flex-row items-center self-center justify-between pl-3 pr-4 py-2.5 rounded-lg bg-gray-100 w-[94%] dark:border-neutral-600 dark:bg-neutral-800">
+    <Pressable
+      className="h-full w-[95%] self-center rounded-lg relative bg-gray-100 dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 active:bg-gray-200 dark:active:bg-neutral-700"
+      onPress={onPress}
+    >
+      <View className="absolute px-4 top-[-1px] w-full self-center rounded-full">
+        <View className="w-full rounded-full">
+          <View className=" w-full self-center bg-gray-200 dark:bg-neutral-700 h-[2px] rounded-full">
+            <View
+              style={{
+                width: `${(progress / currentSong?.durationMs!) * 100}%`,
+              }}
+              className={`bg-black dark:bg-white h-full rounded-full`}
+            />
+          </View>
+        </View>
+      </View>
+      <View className="flex-row items-center self-center justify-between pl-4 pr-4 py-2.5">
         <View className="flex-row items-center gap-x-2">
           <Image
             source={{ uri: currentSong?.albumImage }}
@@ -27,28 +44,35 @@ const MiniPlayer = ({ onPress }: { onPress: any }) => {
             <ThemedText numberOfLines={1} ellipsizeMode="tail" className="">
               {currentSong?.name}
             </ThemedText>
-            <ThemedText className="text-gray-500 text-sm">
+            <ThemedText className="text-gray-500 dark:text-neutral-400 text-sm">
               {currentSong?.artistName}
             </ThemedText>
           </View>
         </View>
-        {isPlaying ? (
-          <Ionicons
-            onPress={togglePlayPause}
-            name="pause-circle-sharp"
-            color="#222"
-            size={36}
-          />
-        ) : (
-          <Ionicons
-            onPress={togglePlayPause}
-            name="play-circle-sharp"
-            color="#222"
-            size={36}
-          />
-        )}
+        <Pressable
+          className="opacity-100 active:opacity-60 items-center justify-center"
+          onPress={
+            isPlaying
+              ? pauseSong
+              : async () => await playSong(progress, setProgress)
+          }
+        >
+          {isPlaying ? (
+            <Ionicons
+              name="pause-circle-sharp"
+              color={colorScheme === "dark" ? "#fff" : "#222"}
+              size={36}
+            />
+          ) : (
+            <Ionicons
+              name="play-circle-sharp"
+              color={colorScheme === "dark" ? "#fff" : "#222"}
+              size={36}
+            />
+          )}
+        </Pressable>
       </View>
-    </TouchableWithoutFeedback>
+    </Pressable>
   )
 }
 

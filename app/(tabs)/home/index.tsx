@@ -15,17 +15,8 @@ import tw from "@/lib/tailwind"
 import { useAtom } from "jotai"
 import { userAtom } from "@/state/user"
 import { getTimeAgo } from "@/utils/getTimeAgo"
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { useFetchUserConversationsQuery } from "@/api/queries/conversation"
-import { spotifyAccessTokenAtom } from "@/state/auth"
-import { useCallback, useEffect } from "react"
-import {
-  auth as SpotifyAuth,
-  remote as SpotifyRemote,
-  ApiScope,
-  ApiConfig,
-} from "react-native-spotify-remote"
-import { makeRedirectUri } from "expo-auth-session"
 
 const ConversationItem = ({
   item: conversation,
@@ -79,6 +70,7 @@ export default function HomeScreen() {
   const { data: conversations, isFetching: isLoading } =
     useFetchUserConversationsQuery()
   const [user] = useAtom(userAtom)
+  const router = useRouter()
 
   return (
     <ThemedSafeAreaView className="h-full px-5">
@@ -98,7 +90,7 @@ export default function HomeScreen() {
           <ThemedView className="mt-2 mb-5">
             <TouchableOpacity
               activeOpacity={0.75}
-              onPress={() => console.log("Pressed")}
+              onPress={() => router.push("(tabs)/home/wildfire-weekly")}
             >
               <ThemedView className="bg-gray-50 dark:bg-neutral-800 rounded-md relative h-[65px] flex-row items-center flex-break">
                 <View className="w-[20%] rounded-l-md h-full bg-orange-600 items-center justify-center">

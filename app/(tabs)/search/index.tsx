@@ -1,5 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons"
-import { ScrollView, Text, TextInput, View, useColorScheme } from "react-native"
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  useColorScheme,
+} from "react-native"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { Button } from "@rneui/themed"
@@ -66,30 +73,48 @@ export default function SearchScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedView className="mt-2 px-5">
-        <View className="flex-row items-center mb-3 bg-gray-50 dark:bg-neutral-800 border-b-[0px] px-3 rounded-md">
-          <View className="mr-2">
-            <Ionicons
-              name="search"
-              size={20}
-              color={colorScheme === "dark" ? "#fff" : "#222"}
+        <View className="flex-row items-center justify-between mb-3 bg-gray-50 dark:bg-neutral-800 border-b-[0px] px-3 rounded-md">
+          <View className="flex-row items-center">
+            <View className="mr-2">
+              <Ionicons
+                name="search"
+                size={20}
+                color={colorScheme === "dark" ? "#fff" : "#222"}
+              />
+            </View>
+            <TextInput
+              value={
+                searchType === SearchType.songs
+                  ? tracksSearchQuery
+                  : userSearchQuery
+              }
+              onChangeText={handleSetQuery}
+              placeholder={
+                searchType === SearchType.songs
+                  ? "search songs"
+                  : "search users"
+              }
+              className="text-base pb-3 pt-2 text-black dark:text-white h-full w-[85%]"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoFocus
+              returnKeyType="search"
+              onSubmitEditing={async () => await handleSearch(searchType)}
             />
           </View>
-          <TextInput
-            value={
-              searchType === SearchType.songs
-                ? tracksSearchQuery
-                : userSearchQuery
-            }
-            onChangeText={handleSetQuery}
-            placeholder={
-              searchType === SearchType.songs ? "search songs" : "search users"
-            }
-            className="text-base pb-3 pt-2 text-black dark:text-white h-full w-full"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-            onSubmitEditing={async () => await handleSearch(searchType)}
-          />
+          {((searchType === SearchType.songs && tracksSearchQuery) ||
+            (searchType === SearchType.users && userSearchQuery)) && (
+            <Pressable
+              className="active:opacity-50 px-4 pl-0"
+              onPress={() => handleSetQuery("")}
+            >
+              <Ionicons
+                name="close-circle-sharp"
+                size={20}
+                color={colorScheme === "dark" ? "#aaa" : "#9ca3af"}
+              />
+            </Pressable>
+          )}
         </View>
       </ThemedView>
       <ThemedView className="pb-2 border-b border-gray-100 dark:border-neutral-800">

@@ -1,4 +1,4 @@
-import { FlatList, Image, Pressable, View, useColorScheme } from "react-native"
+import { FlatList, Pressable, useColorScheme } from "react-native"
 import React, { useCallback, useEffect } from "react"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 import { ThemedView } from "@/components/ThemedView"
@@ -6,7 +6,6 @@ import { ThemedText } from "@/components/ThemedText"
 import { Link, useLocalSearchParams, useRouter } from "expo-router"
 import tw from "@/lib/tailwind"
 import { Conversation } from "@/lib/types/conversation"
-import { formatSpotifyTrackToSong } from "@/utils/spotifyTrackToSong"
 import { useAtom } from "jotai"
 import { userAtom } from "@/state/user"
 import { useIsFocused } from "@react-navigation/native"
@@ -15,7 +14,8 @@ import {
   useFetchConversationByIdQuery,
   useMarkConversationAsSeen,
 } from "@/api/queries/conversation"
-import { addToQueueAtom } from "@/state/player"
+import usePlayer from "@/hooks/player/usePlayer"
+import Track from "@/components/Track"
 
 const MessageItem = ({
   item: song,
@@ -27,82 +27,12 @@ const MessageItem = ({
   index: number
 }) => {
   return (
-    <Pressable onPress={() => handleAddToQueue(index)}>
-      <ThemedView className="flex-row items-center justify-between mb-3">
-        {/* <Image
-        className="rounded-full"
-        source={{ uri: song.sender.pfp }}
-        width={30}
-        height={30}
-      /> */}
-        <ThemedView className="flex-row items-center gap-x-3 w-[60%]">
-          <Image source={{ uri: song.albumImage }} width={50} height={50} />
-          <ThemedView>
-            <ThemedText
-              className="text-base"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {song.name}
-            </ThemedText>
-            <ThemedView className="flex-row items-center">
-              <ThemedText
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                className="text-xs text-gray-600 dark:text-neutral-400"
-              >
-                {song.artistName} · {song.sender.username}
-              </ThemedText>
-              {/* <Image
-              className="rounded-full ml-1"
-              source={{ uri: song.sender.pfp }}
-              height={16}
-              width={16}
-            /> */}
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-        <ThemedView className="flex-row items-center">
-          {song.history.length > 1 && (
-            <ThemedView className="relative mr-5">
-              <Image
-                className="rounded-full"
-                source={{
-                  uri: song.history[song.history.length - 2]?.sender?.pfp,
-                }}
-                height={20}
-                width={20}
-              />
-              <View className="p-[1px] rounded-full absolute bottom-[-5px] right-[-1px] bg-white">
-                <Ionicons name="flame-sharp" color={"#ea580c"} size={12} />
-              </View>
-            </ThemedView>
-          )}
-          <Link
-            href={{
-              pathname: "(tabs)/home/send-song",
-              params: {
-                song: JSON.stringify(formatSpotifyTrackToSong(song)),
-                userIdToCredit: song.senderId,
-              },
-            }}
-            asChild
-          >
-            <Pressable
-              onPress={() => null}
-              className="rounded-full bg-orange-600 active:bg-orange-700 w-[34px] h-[34px] pl-0.5 items-center justify-center"
-            >
-              <Ionicons
-                className="relative right-[5px]"
-                name="send"
-                color="#FFFFFF"
-                size={17}
-              />
-            </Pressable>
-          </Link>
-        </ThemedView>
-      </ThemedView>
-    </Pressable>
+    <Track
+      onPress={() => handleAddToQueue(index)}
+      track={song}
+      userId={song.sender.id}
+      sendSongHref={"(tabs)/home/send-song"}
+    />
   )
 }
 
@@ -115,7 +45,7 @@ const ConversationScreen = () => {
   const isFocused = useIsFocused()
   const router = useRouter()
   const colorScheme = useColorScheme()
-  const [, addToQueue] = useAtom(addToQueueAtom)
+  const { addToQueueAndPlay, currentSong } = usePlayer()
 
   const otherUser =
     user?.id === conversation?.userAId
@@ -125,7 +55,7 @@ const ConversationScreen = () => {
   const handleAddToQueue = useCallback(
     (index: number) => {
       if (conversation?.messages) {
-        addToQueue(conversation?.messages.slice(index))
+        addToQueueAndPlay(conversation?.messages.slice(index))
       }
     },
     [conversation?.messages]
@@ -147,14 +77,28 @@ const ConversationScreen = () => {
             color={colorScheme === "dark" ? "#FFF" : "#222"}
           />
         </Pressable>
-        <ThemedText className="font-semibold text-lg">
-          {otherUser?.username}
-        </ThemedText>
+        <Link
+          href={{
+            pathname: `(tabs)/home/profile`,
+            params: { userId: otherUser?.id },
+          }}
+          push
+          asChild
+        >
+          <Pressable>
+            <ThemedText className="font-semibold text-lg">
+              {otherUser?.username}
+            </ThemedText>
+          </Pressable>
+        </Link>
         <ThemedView className="min-w-[20px]"></ThemedView>
       </ThemedView>
       <FlatList
         keyExtractor={(item) => item.id}
-        contentContainerStyle={tw`pt-4 px-5`}
+        contentContainerStyle={[
+          tw`pt-4 px-5`,
+          currentSong && { paddingBottom: 85 },
+        ]}
         data={conversation?.messages}
         renderItem={(props) => (
           <MessageItem handleAddToQueue={handleAddToQueue} {...props} />
