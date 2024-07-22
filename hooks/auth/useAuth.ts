@@ -15,9 +15,13 @@ import {
   ApiScope,
   auth as SpotifyAuth,
   remote as SpotifyRemote,
+  SpotifySession,
 } from "react-native-spotify-remote"
 import { AccessToken } from "@spotify/web-api-ts-sdk"
 import { isPlayingAtom } from "@/state/player"
+import Toast from "react-native-toast-message"
+import { RESET } from "jotai/utils"
+import axios from "axios"
 
 interface Tokens {
   access_token: string
@@ -41,6 +45,8 @@ export const spotifyConfig: ApiConfig = {
   clientID: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID,
   redirectURL: redirectUri,
   tokenSwapURL: "http://192.168.1.141:4001/api/v1/auth/token-swap",
+  tokenRefreshURL:
+    "http://192.168.1.141:4001/api/v1/auth/refresh-token-frontend",
   showDialog: false,
   scopes: [
     ApiScope.AppRemoteControlScope,
@@ -61,6 +67,11 @@ export const spotifyConfig: ApiConfig = {
     ApiScope.UserTopReadScope,
   ],
 }
+
+const MAX_LOGIN_TIMEOUT = () =>
+  new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Timeout: Sign in took too long")), 10000)
+  )
 
 const useAuth = () => {
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -92,8 +103,12 @@ const useAuth = () => {
         await SpotifyRemote.connect(session.accessToken)
       }
 
-      setSpotifyAccessToken(session.accessToken)
-      setSpotifyRefreshToken(session.refreshToken)
+      await handleSignInOrSignUp({
+        access_token: session.accessToken,
+        refresh_token: session.refreshToken,
+        expires_in: 3600,
+        token_type: "Bearer",
+      })
 
       console.log("isConnected", isConnected)
       // await SpotifyRemote.playUri("spotify:track:3CDGdnri4kiyWKlcl25bYJ")
@@ -114,8 +129,11 @@ const useAuth = () => {
         console.log("Bad sign in response!")
         throw new Error("No data returned from token swap.")
       }
-      setAccessToken(data.wildfire_token)
-      setUser(data.user)
+
+      await setSpotifyAccessToken(data.spotify_auth.access_token)
+      await setSpotifyRefreshToken(data.spotify_auth.refresh_token)
+      await setAccessToken(data.wildfire_token)
+      await setUser(data.user)
       return data
     } catch (err) {
       //err.response.data.errors[0].message
@@ -127,7 +145,10 @@ const useAuth = () => {
   const signIn = async () => {
     try {
       setIsSigningIn(true)
-      const session = await authenticateSpotify()
+      const session = await Promise.race<SpotifySession>([
+        authenticateSpotify(),
+        MAX_LOGIN_TIMEOUT(),
+      ])
       const formattedTokens = {
         access_token: session.accessToken,
         refresh_token: session.refreshToken,
@@ -137,21 +158,35 @@ const useAuth = () => {
       const data = await handleSignInOrSignUp(formattedTokens)
       return data
     } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "error signing in",
+        text2: "close wildfire and spotify and then reopen and try again",
+      })
+      console.log("Error signing in:", err)
+    } finally {
       setIsSigningIn(false)
     }
   }
 
+  const signOut = async () => {
+    await setAccessToken("")
+    await setSpotifyAccessToken("")
+    await setSpotifyRefreshToken("")
+    await setUser(RESET)
+  }
+
   const refreshAccessToken = async () => {
     try {
-      const { data } = await baseApi.post<TokenResponse>(
-        "/auth/refresh-token",
+      const { data } = await axios.post<TokenResponse>(
+        "http://192.168.1.141:4001/api/v1/auth/refresh-token",
         {
           refreshToken: spotifyRefreshToken,
         }
       )
-      setSpotifyAccessToken(data.spotify_auth.access_token)
-      setSpotifyRefreshToken(data.spotify_auth.refresh_token)
-      setAccessToken(data.wildfire_token)
+      await setSpotifyAccessToken(data.spotify_auth.access_token)
+      await setSpotifyRefreshToken(data.spotify_auth.refresh_token)
+      await setAccessToken(data.wildfire_token)
       return data
     } catch (err) {
       console.log("Error refreshing token:", err)
@@ -167,6 +202,7 @@ const useAuth = () => {
     accessToken,
     isSignedIn,
     isSigningIn,
+    signOut,
     session: {
       user,
     },

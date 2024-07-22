@@ -11,3 +11,8 @@ export const fetchUserProfile = async (userId: string) => {
   })
   return data
 }
+
+export const fetchAuthedUser = async () => {
+  const { data } = await baseApi.get<User>("/user/me")
+  return data
+}

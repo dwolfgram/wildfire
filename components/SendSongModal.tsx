@@ -54,7 +54,7 @@ const FollowerItem = ({
 const SendSongModal = () => {
   const theme = useTheme()
   const [user] = useAtom(userAtom)
-  const { song: songString, userIdToCredit } = useLocalSearchParams()
+  const { song: songString, historySongIds } = useLocalSearchParams()
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const { mutateAsync: sendSong, isPending: isSending } = useSendSong()
   const {
@@ -69,22 +69,26 @@ const SendSongModal = () => {
 
   const song = JSON.parse(songString as string) as Partial<Song>
 
-  const handleSelectUser = (userId: string) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers((prev) => prev.filter((id) => id !== userId))
-    } else {
-      setSelectedUsers((prev) => [...prev, userId])
-    }
-  }
+  const handleSelectUser = useCallback(
+    (userId: string) => {
+      if (selectedUsers.includes(userId)) {
+        setSelectedUsers((prev) => prev.filter((id) => id !== userId))
+      } else {
+        setSelectedUsers((prev) => [...prev, userId])
+      }
+    },
+    [selectedUsers]
+  )
+
+  console.log("historySongIds:", historySongIds)
 
   const handleSendSong = async () => {
-    if (!userIdToCredit) {
-      console.log("MISSING USER TO CREDIT!")
-    }
     const sentSongs = await sendSong({
       toUserIds: selectedUsers,
       songData: song,
-      userIdToCredit: userIdToCredit as string,
+      historySongIds: historySongIds
+        ? JSON.parse(historySongIds as string)
+        : [],
     })
 
     if (sentSongs?.length && sentSongs.length > 0) {
@@ -176,6 +180,12 @@ const SendSongModal = () => {
           titleStyle={[tw`font-semibold text-base`]}
           title="send song"
           activeOpacity={0.8}
+          disabledStyle={{
+            backgroundColor: theme.dark ? "#333" : "#777",
+          }}
+          disabledTitleStyle={{
+            color: theme.dark ? "#999" : "#444",
+          }}
           loading={isSending}
           disabled={selectedUsers.length === 0 || isSending}
         />

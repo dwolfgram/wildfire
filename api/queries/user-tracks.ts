@@ -10,7 +10,7 @@ import {
   fetchUserTracksByType,
   fetchWildfireWeekly,
 } from "../endpoints/user-tracks"
-import { TrackType } from "@/lib/types/user-track"
+import { TrackType } from "@/lib/types/song"
 
 const isValidTrackType = (trackType: any): trackType is TrackType => {
   if (!trackType) return false

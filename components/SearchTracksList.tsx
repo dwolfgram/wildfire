@@ -1,4 +1,4 @@
-import { FlatList, Pressable } from "react-native"
+import { FlatList } from "react-native"
 import React, { ReactElement, useCallback } from "react"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
@@ -51,8 +51,8 @@ const SearchTracksList = ({
   const handleAddToQueue = useCallback(
     (index: number) => {
       if (data) {
-        const songsToAdd = data.slice(index).map(formatSpotifyTrackToSong)
-        addToQueueAndPlay(songsToAdd)
+        const songsToAdd = data.map(formatSpotifyTrackToSong)
+        addToQueueAndPlay(songsToAdd, index)
       }
     },
     [data]

@@ -1,117 +1,87 @@
-import {
-  FlatList,
-  Image,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
-import { Ionicons } from "@expo/vector-icons"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
-import { Conversation } from "@/lib/types/conversation"
-import tw from "@/lib/tailwind"
-import { useAtom } from "jotai"
-import { userAtom } from "@/state/user"
-import { getTimeAgo } from "@/utils/getTimeAgo"
-import { Link, useRouter } from "expo-router"
 import { useFetchUserConversationsQuery } from "@/api/queries/conversation"
+import * as Notifications from "expo-notifications"
+import ConversationsList from "@/components/ConversationsList"
+import useRegisterNotifications from "@/hooks/notifications/useRegisterForNotifications"
+import { useEffect, useRef } from "react"
+import useUpdateNotificationPushToken from "@/hooks/notifications/useUpdateNotificationPushToken"
+import useSendNotification from "@/hooks/notifications/useSendNotification"
+import NotificationIcon from "@/components/NotificationIcon"
+import { View } from "react-native"
+import { useQueryClient } from "@tanstack/react-query"
+import { notificationQueryKeys } from "@/api/queries/notifications"
 
-const ConversationItem = ({
-  item: conversation,
-  userId,
-}: {
-  item: Conversation
-  userId: string
-}) => {
-  const otherUser =
-    userId === conversation.userAId ? conversation.userB : conversation.userA
-
-  return (
-    <Link
-      href={{
-        pathname: "(tabs)/home/conversation",
-        params: { conversationId: conversation.id },
-      }}
-      asChild
-      push
-    >
-      <TouchableOpacity activeOpacity={0.6}>
-        <ThemedView className="flex-row items-center border-b border-gray-50 dark:border-neutral-800 justify-between pb-3 pt-1 mb-2">
-          <ThemedView className="flex-row items-center gap-x-2.5">
-            <Image
-              className="rounded-full"
-              source={{ uri: otherUser?.pfp }}
-              height={50}
-              width={50}
-            />
-            <ThemedText className="text-base">{otherUser?.username}</ThemedText>
-          </ThemedView>
-          <ThemedView>
-            <ThemedText className="text-sm text-gray-500 dark:text-neutral-500 my-0.5">
-              {getTimeAgo(conversation.lastMessageAt!)}
-            </ThemedText>
-            {(conversation._count?.messages ?? 0) > 0 && (
-              <View className="bg-orange-600 rounded-full items-center justify-center min-w-[20px] min-h-[20px] px-1">
-                <Text className="text-white text-xs font-semibold">
-                  {conversation._count?.messages}
-                </Text>
-              </View>
-            )}
-          </ThemedView>
-        </ThemedView>
-      </TouchableOpacity>
-    </Link>
-  )
-}
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+})
 
 export default function HomeScreen() {
   const { data: conversations, isFetching: isLoading } =
     useFetchUserConversationsQuery()
-  const [user] = useAtom(userAtom)
-  const router = useRouter()
+
+  const queryClient = useQueryClient()
+
+  const { registerForNotifications } = useRegisterNotifications()
+  const { updateUserNotificationToken } = useUpdateNotificationPushToken()
+  const { sendPushNotification } = useSendNotification()
+
+  const notificationListener = useRef<Notifications.Subscription>()
+  const responseListener = useRef<Notifications.Subscription>()
+
+  useEffect(() => {
+    const handleTryRegisterNotifications = async () => {
+      try {
+        const token = await registerForNotifications()
+        await updateUserNotificationToken(token)
+        await sendPushNotification(token!)
+        console.log("Notification token:", token)
+      } catch (err) {
+        console.log("Error setting up notifications", err)
+      }
+    }
+
+    handleTryRegisterNotifications()
+
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log(notification)
+        // TODO: invalidate notification count query
+        queryClient.invalidateQueries({
+          queryKey: notificationQueryKeys.getUnreadCount(),
+        })
+      })
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(response)
+      })
+
+    return () => {
+      notificationListener.current &&
+        Notifications.removeNotificationSubscription(
+          notificationListener.current
+        )
+      responseListener.current &&
+        Notifications.removeNotificationSubscription(responseListener.current)
+    }
+  }, [])
 
   return (
     <ThemedSafeAreaView className="h-full px-5">
-      <ThemedView className="items-center mt-1">
-        <ThemedText className="text-lg" type="defaultSemiBold">
-          wildfire
-        </ThemedText>
+      <ThemedView className="flex-row items-center justify-between mt-1 px-3">
+        <ThemedView className="min-w-[20px]"></ThemedView>
+        <ThemedText className="font-semibold text-lg">home</ThemedText>
+        <View>
+          <NotificationIcon />
+        </View>
       </ThemedView>
-      <FlatList
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={tw`pt-2`}
-        data={conversations}
-        renderItem={(props) => (
-          <ConversationItem userId={user?.id!} {...props} />
-        )}
-        ListHeaderComponent={
-          <ThemedView className="mt-2 mb-5">
-            <TouchableOpacity
-              activeOpacity={0.75}
-              onPress={() => router.push("(tabs)/home/wildfire-weekly")}
-            >
-              <ThemedView className="bg-gray-50 dark:bg-neutral-800 rounded-md relative h-[65px] flex-row items-center flex-break">
-                <View className="w-[20%] rounded-l-md h-full bg-orange-600 items-center justify-center">
-                  <Ionicons name="flame-sharp" size={28} color={"#fed7aa"} />
-                </View>
-                <Text className="ml-4 text-base text-neutral-800 dark:text-neutral-300 w-[140px] font-medium">
-                  weekly discovery playlist
-                </Text>
-              </ThemedView>
-            </TouchableOpacity>
-          </ThemedView>
-        }
-        ListEmptyComponent={
-          <ThemedView className="items-center justify-center pt-1">
-            <ThemedText className="opacity-50">
-              {isLoading ? "loading..." : "no results"}
-            </ThemedText>
-          </ThemedView>
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      <ConversationsList data={conversations} isLoading={isLoading} />
     </ThemedSafeAreaView>
   )
 }

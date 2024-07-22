@@ -53,8 +53,12 @@ export const togglePlayPauseAtom = atom(null, (get, set) => {
 
 export const addToQueueAtom = atom(
   null,
-  (get, set, newSongs: Partial<Song>[]) => {
+  (
+    get,
+    set,
+    { newSongs, startIndex }: { newSongs: Partial<Song>[]; startIndex: number }
+  ) => {
     set(queueAtom, [...newSongs])
-    set(currentSongIndexAtom, 0)
+    set(currentSongIndexAtom, startIndex)
   }
 )

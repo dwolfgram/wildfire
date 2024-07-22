@@ -1,8 +1,7 @@
 import { Song } from "@/lib/types/song"
 import { SpotifyTrack } from "@/lib/types/spotify-track"
-import { UserTrack } from "@/lib/types/user-track"
 
-function isSong(data: Song | SpotifyTrack): data is Song {
+export function isSong(data: Song | SpotifyTrack): data is Song {
   return (data as Song).spotifyId !== undefined
 }
 

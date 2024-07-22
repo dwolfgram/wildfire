@@ -14,19 +14,15 @@ import store from "@/state/store"
 import { useDeviceContext } from "twrnc"
 import tw from "@/lib/tailwind"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { isPlayingAtom } from "@/state/player"
 import { ThemedView } from "@/components/ThemedView"
 import { ThemedText } from "@/components/ThemedText"
 import Toast from "react-native-toast-message"
 import { toastConfig } from "@/lib/toast"
-import TrackPlayer from "react-native-track-player"
-import TrackPlayerService from "@/lib/service"
+import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
 const queryClient = new QueryClient()
-
-TrackPlayer.registerPlaybackService(() => TrackPlayerService)
 
 export default function RootLayout() {
   useDeviceContext(tw)
@@ -60,6 +56,10 @@ export default function RootLayout() {
               name="(tabs)"
               options={{ headerShown: false, animation: "none" }}
             />
+            <Stack.Screen
+              name="send-song"
+              options={{ headerShown: false, presentation: "modal" }}
+            />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>
@@ -71,9 +71,11 @@ export default function RootLayout() {
 
 export function ErrorBoundary(props: ErrorBoundaryProps) {
   return (
-    <ThemedView style={{ flex: 1, backgroundColor: "red" }}>
-      <ThemedText>{props.error.message}</ThemedText>
-      <ThemedText onPress={props.retry}>Try Again?</ThemedText>
-    </ThemedView>
+    <ThemedSafeAreaView>
+      <ThemedView style={{ flex: 1 }}>
+        <ThemedText>{props.error.message}</ThemedText>
+        <ThemedText onPress={props.retry}>Try Again?</ThemedText>
+      </ThemedView>
+    </ThemedSafeAreaView>
   )
 }

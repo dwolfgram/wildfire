@@ -94,6 +94,7 @@ export default function SearchScreen() {
                   ? "search songs"
                   : "search users"
               }
+              placeholderTextColor={colorScheme === "dark" ? "#999" : "#666"}
               className="text-base pb-3 pt-2 text-black dark:text-white h-full w-[85%]"
               autoCapitalize="none"
               autoCorrect={false}
@@ -121,21 +122,21 @@ export default function SearchScreen() {
         <ScrollView contentContainerStyle={tw`gap-1 px-5`} horizontal>
           {SEARCH_TYPES.map((type) => {
             const selected = searchType === type
-            const selectedTitleStyles = tw`text-orange-600`
+            const selectedTitleStyles = "text-orange-600 dark:text-orange-600"
             return (
-              <Button
-                key={type}
-                buttonStyle={[
-                  tw`rounded-md px-3 py-0 border-gray-200 border dark:border-neutral-800 h-[30px]`,
-                ]}
-                titleStyle={[
-                  tw`text-sm font-medium text-black dark:text-white`,
-                  selected && selectedTitleStyles,
-                ]}
-                title={type}
-                type="outline"
+              <Pressable
                 onPress={() => setSearchType(type)}
-              />
+                key={type}
+                className={`rounded-md px-3 border-gray-200 border dark:border-neutral-800 h-[30px] justify-center active:opacity-60`}
+              >
+                <Text
+                  className={`text-sm font-medium text-black dark:text-white ${
+                    selected && selectedTitleStyles
+                  }`}
+                >
+                  {type}
+                </Text>
+              </Pressable>
             )
           })}
         </ScrollView>

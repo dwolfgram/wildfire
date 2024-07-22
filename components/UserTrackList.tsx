@@ -1,16 +1,15 @@
-import { FlatList, Pressable, Image, FlatListProps } from "react-native"
-import React, { ReactElement, useCallback } from "react"
+import { FlashList } from "@shopify/flash-list"
+import React, { ReactElement, useCallback, useMemo } from "react"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
-import { UserTrack } from "@/lib/types/user-track"
-import { Link } from "expo-router"
 import tw from "@/lib/tailwind"
-import { Ionicons } from "@expo/vector-icons"
 import usePlayer from "@/hooks/player/usePlayer"
 import Track from "./Track"
+import { Song } from "@/lib/types/song"
+import { filterDuplicates } from "@/utils/filterDuplicates"
 
 interface UserTrackListProps {
-  data: UserTrack[] | null
+  data: Song[] | null
   isLoading: boolean
   linkHref: string
   onEndReached?: () => void
@@ -25,7 +24,7 @@ const UserTrackItem = ({
   handleAddToQueue,
   index,
 }: {
-  item: UserTrack
+  item: Song
   handleAddToQueue: (index: number) => void
   linkHref: string
   index: number
@@ -56,16 +55,20 @@ const UserTrackList = ({
   const handleAddToQueue = useCallback(
     (index: number) => {
       if (data) {
-        const songsToAdd = data.slice(index)
-        addToQueueAndPlay(songsToAdd)
+        addToQueueAndPlay(data, index)
       }
     },
     [data]
   )
 
+  const dedupedArray = useMemo(
+    () => filterDuplicates<Song>(data!, "id"),
+    [data]
+  )
+
   return (
-    <FlatList
-      data={data}
+    <FlashList
+      data={dedupedArray}
       renderItem={(props) => (
         <UserTrackItem
           handleAddToQueue={handleAddToQueue}
@@ -74,6 +77,8 @@ const UserTrackList = ({
         />
       )}
       keyExtractor={(item) => item.id}
+      estimatedItemSize={63}
+      // @ts-ignore
       contentContainerStyle={[tw`pb-10`, currentSong && { paddingBottom: 110 }]}
       ListHeaderComponent={header}
       ListEmptyComponent={

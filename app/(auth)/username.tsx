@@ -1,32 +1,38 @@
 import { Text, TextInput } from "react-native"
-import React from "react"
+import React, { useEffect } from "react"
 import { ThemedView } from "@/components/ThemedView"
 import { ThemedText } from "@/components/ThemedText"
-import { SafeAreaView } from "react-native-safe-area-context"
 import { Button } from "@rneui/themed"
 import tw from "twrnc"
 import useCreateUsername from "@/hooks/user/useCreateUsername"
 import useAuth from "@/hooks/auth/useAuth"
 import { Redirect } from "expo-router"
+import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
+import { useTheme } from "@react-navigation/native"
+import { useAtom } from "jotai"
+import { userAtom } from "@/state/user"
+import { isSignedInAtom } from "@/state/auth"
 
 const UsernameScreen = () => {
-  const { session, isSignedIn } = useAuth()
+  const theme = useTheme()
+  const [user] = useAtom(userAtom)
+  const [isSignedIn] = useAtom(isSignedInAtom)
   const { setUsername, createUsername, username, error } = useCreateUsername()
 
-  if (isSignedIn && session.user?.username && !session.user?.discoverWeeklyId) {
+  if (isSignedIn && user?.username && user?.discoverWeeklyId) {
     return <Redirect href="(auth)/choose-discover-weekly" />
   }
 
   return (
-    <SafeAreaView className="h-full bg-white">
+    <ThemedSafeAreaView className="h-full">
       <ThemedView className="h-[50vh] gap-6 px-10 items-center justify-center">
         <ThemedText type="subtitle">choose a username</ThemedText>
         <ThemedView className="w-full">
           <TextInput
-            className="text-xl bg-gray-50 px-4 pb-3 pt-2 text-center rounded-md text-base"
+            className="text-base text-black bg-gray-50 dark:bg-neutral-800 dark:text-white  px-4 pb-3 pt-2 text-center rounded-md"
+            placeholderTextColor={theme.dark ? "#999" : "#666"}
             value={username}
             onChangeText={setUsername}
-            placeholderTextColor={"#888"}
             autoCapitalize="none"
             spellCheck={false}
             placeholder="username..."
@@ -43,12 +49,18 @@ const UsernameScreen = () => {
             containerStyle={tw`mt-4 w-full`}
             buttonStyle={tw`bg-orange-600 rounded-md py-2`}
             titleStyle={tw`font-semibold text-base`}
+            disabledStyle={{
+              backgroundColor: theme.dark ? "#333" : "#777",
+            }}
+            disabledTitleStyle={{
+              color: theme.dark ? "#999" : "#444",
+            }}
             title="done"
             activeOpacity={0.8}
           />
         </ThemedView>
       </ThemedView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   )
 }
 

@@ -1,7 +1,6 @@
 import { Song } from "@/lib/types/song"
 import {
   addToQueueAtom,
-  currentPositionAtom,
   currentSongAtom,
   isPlayingAtom,
   nextSongInQueueAtom,
@@ -11,11 +10,13 @@ import {
   togglePlayPauseAtom,
 } from "@/state/player"
 import { useAtom } from "jotai"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import useAuth from "../auth/useAuth"
 import { remote as SpotifyRemote } from "react-native-spotify-remote"
 import { isErrorWithMessage } from "@/utils/isErrorWithMessage"
 import Toast from "react-native-toast-message"
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av"
+import { Sound } from "expo-av/build/Audio"
 
 const usePlayer = () => {
   const { authenticateSpotify } = useAuth()
@@ -27,6 +28,7 @@ const usePlayer = () => {
   const [_____, skipToPreviousInQueue] = useAtom(playPreviousAtom)
   const [__, togglePlayPause] = useAtom(togglePlayPauseAtom)
   const [___, addToQueue] = useAtom(addToQueueAtom)
+  const [currentSound, setCurrentSound] = useState<Sound | null>(null)
 
   const ensureSpotifyIsReady = async (uri?: string) => {
     try {
@@ -52,30 +54,48 @@ const usePlayer = () => {
 
   const playCurrentSong = useCallback(async (song: Partial<Song>) => {
     try {
-      setIsPlaying(true)
+      // setIsPlaying(true)
+      // if (!currentSound) {
+      //   const { sound } = await Audio.Sound.createAsync(
+      //     require("@/assets/sounds/silence.mp3")
+      //   )
+      //   setCurrentSound(sound)
+      //   await Audio.setAudioModeAsync({
+      //     staysActiveInBackground: true,
+      //     interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+      //     interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      //     playsInSilentModeIOS: true,
+      //   })
+      //   await sound.setIsLoopingAsync(true)
+      //   await sound.playAsync()
+      // }
       await ensureSpotifyIsReady(song.spotifyUri)
       await SpotifyRemote.playUri(song.spotifyUri!)
     } catch (err) {
       if (isErrorWithMessage(err) && !err.message.includes("reauthed")) {
+        console.log("Pausing song due to error.", err)
         setIsPlaying(false)
       }
       throw err
     }
   }, [])
 
-  const addToQueueAndPlay = useCallback(async (songs: Partial<Song>[]) => {
-    try {
-      addToQueue(
-        songs.map((song) => ({
-          ...song,
-          key: `${song.spotifyUri}//${Date.now()}`,
-        }))
-      )
-      await playCurrentSong(songs[0])
-    } catch (err) {
-      console.log("Error adding to queue and playing")
-    }
-  }, [])
+  const addToQueueAndPlay = useCallback(
+    async (songs: Partial<Song>[], startIndex: number) => {
+      try {
+        addToQueue({
+          newSongs: songs,
+          startIndex,
+        })
+        await playCurrentSong(songs[startIndex])
+        await SpotifyRemote.queueUri(songs[startIndex + 1].spotifyUri!)
+        await SpotifyRemote.queueUri(songs[startIndex + 2].spotifyUri!)
+      } catch (err) {
+        console.log("Error adding to queue and playing")
+      }
+    },
+    []
+  )
 
   const playSong = useCallback(
     async (
@@ -89,9 +109,10 @@ const usePlayer = () => {
           return
         }
 
-        setIsPlaying(true)
+        // setIsPlaying(true)
         await ensureSpotifyIsReady(currentSong?.spotifyUri)
         await SpotifyRemote.resume()
+        // await currentSound?.playAsync()
       } catch (err) {
         console.log("Error playing song", err)
         if (isErrorWithMessage(err) && err.message.includes("reauthed")) {
@@ -104,7 +125,7 @@ const usePlayer = () => {
             type: "error",
             text1: "spotify lost connection",
             text2:
-              "we had to your reset playback position to spotify disconnecting",
+              "we had to your reset playback position due to spotify disconnecting",
             position: "top",
             topOffset: 54,
             visibilityTime: 7000,
@@ -119,9 +140,10 @@ const usePlayer = () => {
 
   const pauseSong = useCallback(async () => {
     try {
-      setIsPlaying(false)
+      // setIsPlaying(false)
       await ensureSpotifyIsReady()
       await SpotifyRemote.pause()
+      // await currentSound?.pauseAsync()
     } catch (err) {
       if (isErrorWithMessage(err) && err.message.includes("reauthed")) {
         setIsPlaying(true)

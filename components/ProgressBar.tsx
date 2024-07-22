@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { View, useColorScheme } from "react-native"
 import Slider from "@react-native-community/slider"
 import { ThemedText } from "./ThemedText"

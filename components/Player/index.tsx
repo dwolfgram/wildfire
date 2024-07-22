@@ -1,4 +1,4 @@
-import { View, Text } from "react-native"
+import { View, Text, AppState, AppStateStatus } from "react-native"
 import React, { useEffect, useState } from "react"
 import MiniPlayer from "./mini-player"
 import Modal from "react-native-modal"
@@ -7,45 +7,73 @@ import { ThemedView } from "../ThemedView"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { TAB_BAR_HEIGHT } from "@/constants/tabBar"
 import useProgress from "@/hooks/player/useProgress"
-import TrackPlayer, {
-  Capability,
-  Event,
-  useTrackPlayerEvents,
-} from "react-native-track-player"
+import {
+  remote as SpotifyRemote,
+  PlayerState,
+} from "react-native-spotify-remote"
+import { useAtom } from "jotai"
+import { isPlayingAtom, queueAtom } from "@/state/player"
 
 const Player = () => {
   const { progress, setProgress } = useProgress()
   const { bottom } = useSafeAreaInsets()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [_, setIsPlaying] = useAtom(isPlayingAtom)
+
   const handleTogglePlayer = () => {
     setIsModalOpen((prev) => !prev)
   }
 
-  useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async (event) => {
-    console.log(event)
-  })
-
-  const setupPlayer = async () => {
-    try {
-      await TrackPlayer.setupPlayer()
-      await TrackPlayer.updateOptions({
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
-          Capability.SkipToPrevious,
-        ],
-      })
-      console.log("setup boi")
-      const state = await TrackPlayer.getPlaybackState()
-      console.log(state)
-    } catch (error) {
-      console.log(error)
-    }
+  const handleRemoteConnected = () => console.log("REMOTE CONNECTED!")
+  const handleRemoteDisconnected = () => {
+    setIsPlaying(false)
+    console.log("REMOTE DISCONNECTED!")
   }
 
   useEffect(() => {
-    setupPlayer()
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === "background" || nextAppState === "inactive") {
+        console.log("CLOSING!")
+      }
+      if (nextAppState === "active") {
+        console.log("JK ACTIVE BOI")
+      }
+    }
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    )
+    console.log("Subscribing!")
+
+    // Cleanup the subscription on unmount
+    return () => {
+      subscription.remove()
+    }
+  }, [])
+
+  useEffect(() => {
+    const remoteConnectedListener = SpotifyRemote.addListener(
+      "remoteConnected",
+      handleRemoteConnected
+    )
+    const remoteDisconnectedListener = SpotifyRemote.addListener(
+      "remoteDisconnected",
+      handleRemoteDisconnected
+    )
+    const playerStateListener = SpotifyRemote.addListener(
+      "playerStateChanged",
+      async (data: PlayerState) => {
+        // @ts-ignore
+        setIsPlaying(!data[0].isPaused)
+      }
+    )
+
+    return () => {
+      remoteConnectedListener.remove()
+      remoteDisconnectedListener.remove()
+      playerStateListener.remove()
+    }
   }, [])
 
   return (

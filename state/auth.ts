@@ -1,43 +1,71 @@
 import { atom } from "jotai"
 import store from "./store"
+import { secureStorage } from "./secureStoreAtom"
+import { atomWithStorage, unwrap } from "jotai/utils"
 
-export const accessTokenAtom = atom("")
-export const spotifyAccessTokenAtom = atom("")
-export const spotifyRefreshTokenAtom = atom("")
-export const isSignedInAtom = atom(
-  (get) =>
-    Boolean(get(accessTokenAtom)) &&
-    Boolean(
-      get(spotifyAccessTokenAtom) && Boolean(get(spotifyRefreshTokenAtom))
-    )
+export const accessTokenAtom = atomWithStorage<string>(
+  "accessToken",
+  "",
+  secureStorage,
+  { getOnInit: true }
 )
 
-export const getAccessToken = () => {
+export const spotifyAccessTokenAtom = atomWithStorage<string>(
+  "spotifyAccessToken",
+  "",
+  secureStorage,
+  {
+    getOnInit: true,
+  }
+)
+
+export const spotifyRefreshTokenAtom = atomWithStorage<string>(
+  "spotifyRefreshToken",
+  "",
+  secureStorage,
+  {
+    getOnInit: true,
+  }
+)
+
+export const isSignedInAtom = atom((get) => {
+  const accessToken = get(unwrap(accessTokenAtom))
+  const spotifyAccessToken = get(unwrap(spotifyAccessTokenAtom))
+  const spotifyRefreshToken = get(unwrap(spotifyRefreshTokenAtom))
+
+  return (
+    Boolean(accessToken) &&
+    Boolean(spotifyAccessToken) &&
+    Boolean(spotifyRefreshToken)
+  )
+})
+
+export const getAccessToken = async () => {
   const { get } = store
-  return get(accessTokenAtom)
+  return await get(accessTokenAtom)
 }
 
-export const setAccessToken = (accessToken: string) => {
+export const setAccessToken = async (accessToken: string) => {
   const { set } = store
-  return set(accessTokenAtom, accessToken)
+  await set(accessTokenAtom, accessToken)
 }
 
-export const getSpotifyAccessToken = () => {
+export const getSpotifyAccessToken = async () => {
   const { get } = store
-  return get(spotifyAccessTokenAtom)
+  return await get(spotifyAccessTokenAtom)
 }
 
-export const setSpotifyAccessToken = (accessToken: string) => {
+export const setSpotifyAccessToken = async (spotifyAccessToken: string) => {
   const { set } = store
-  return set(spotifyAccessTokenAtom, accessToken)
+  await set(spotifyAccessTokenAtom, spotifyAccessToken)
 }
 
-export const getSpotifyRefreshToken = () => {
+export const getSpotifyRefreshToken = async () => {
   const { get } = store
-  return get(spotifyRefreshTokenAtom)
+  return await get(spotifyRefreshTokenAtom)
 }
 
-export const setSpotifyRefreshToken = (refreshToken: string) => {
+export const setSpotifyRefreshToken = async (refreshToken: string) => {
   const { set } = store
-  return set(spotifyRefreshTokenAtom, refreshToken)
+  await set(spotifyRefreshTokenAtom, refreshToken)
 }

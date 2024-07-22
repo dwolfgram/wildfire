@@ -15,7 +15,7 @@ WebBrowser.maybeCompleteAuthSession() // required for web only
 const LoginScreen = () => {
   const { signIn, session, isSignedIn, isSigningIn } = useAuth()
 
-  if (isSignedIn && !session.user?.username) {
+  if (isSignedIn && session.user && !session.user?.username) {
     return <Redirect href="(auth)/username" />
   }
 

@@ -2,7 +2,9 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  Text,
   useColorScheme,
+  View,
 } from "react-native"
 import React, { useCallback, useEffect, useState } from "react"
 import { ThemedView } from "./ThemedView"
@@ -25,7 +27,8 @@ import {
   useFetchUserTracksByType,
   useFetchWildfireWeeklyQuery,
 } from "@/api/queries/user-tracks"
-import { TrackType } from "@/lib/types/user-track"
+import { TrackType } from "@/lib/types/song"
+import useAuth from "@/hooks/auth/useAuth"
 
 interface ProfileScreenProps {
   linkHref: string
@@ -50,6 +53,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
   const [playlistType, setPlaylistType] = useState(PLAYLIST_TYPES.likes)
   const [user] = useAtom(userAtom)
   const isMe = userId === user?.id || !userId
+  const { signOut } = useAuth()
 
   const router = useRouter()
   const path = usePathname()
@@ -103,7 +107,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
         </ThemedText>
         <ThemedView className="min-w-[20px]"></ThemedView>
       </ThemedView>
-      <ThemedView className="px-5">
+      <ThemedView className="px-5 h-full">
         <UserTrackList
           data={
             (playlistType === PLAYLIST_TYPES.wildfire
@@ -179,7 +183,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
                   </ThemedView>
                 </ThemedView>
                 <Button
-                  onPress={handleButtonPress}
+                  onPress={isMe ? signOut : handleButtonPress}
                   containerStyle={tw`mt-4`}
                   buttonStyle={[
                     userProfile?.isFollowing
@@ -193,7 +197,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
                   ]}
                   title={
                     isMe
-                      ? "my profile"
+                      ? "sign out"
                       : userProfile?.isFollowing
                       ? "unfollow"
                       : "follow"
@@ -204,8 +208,13 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
                     isUnfollowInProgress ||
                     isLoadingProfile
                   }
+                  disabledStyle={{
+                    backgroundColor: colorScheme === "dark" ? "#333" : "#777",
+                  }}
+                  disabledTitleStyle={{
+                    color: colorScheme === "dark" ? "#999" : "#444",
+                  }}
                   disabled={
-                    isMe ||
                     isFollowInProgress ||
                     isUnfollowInProgress ||
                     isLoadingProfile
@@ -220,21 +229,22 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
                 >
                   {Object.values(PLAYLIST_TYPES).map((type) => {
                     const selected = playlistType === type
-                    const selectedTitleStyles = tw`text-orange-600`
+                    const selectedTitleStyles =
+                      "text-orange-600 dark:text-orange-600"
                     return (
-                      <Button
+                      <Pressable
                         key={type}
-                        buttonStyle={[
-                          tw`rounded-md px-3 py-0 border-gray-200 border dark:border-neutral-800 h-[30px]`,
-                        ]}
-                        titleStyle={[
-                          tw`text-sm font-medium text-black dark:text-white`,
-                          selected && selectedTitleStyles,
-                        ]}
-                        title={type}
-                        type="outline"
                         onPress={() => setPlaylistType(type)}
-                      />
+                        className={`rounded-md px-3 border-gray-200 border dark:border-neutral-800 h-[30px] justify-center active:opacity-60`}
+                      >
+                        <Text
+                          className={`text-sm font-medium text-black dark:text-white ${
+                            selected && selectedTitleStyles
+                          }`}
+                        >
+                          {type}
+                        </Text>
+                      </Pressable>
                     )
                   })}
                 </ScrollView>

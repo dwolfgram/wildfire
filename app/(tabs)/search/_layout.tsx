@@ -5,6 +5,7 @@ export default function SearchTabLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack.Screen name="song-history" options={{ headerShown: false }} />
       <Stack.Screen
         name="send-song"
         options={{ headerShown: false, presentation: "modal" }}

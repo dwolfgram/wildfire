@@ -26,14 +26,13 @@ const useSpotifyTrackProgress = () => {
           clearTimeout(timerRef.current)
         }
 
-        if (isPlaying) {
-          const remainingDuration =
-            playerState.track.duration - (playerState.playbackPosition + 1000)
-          timerRef.current = setTimeout(async () => {
-            setProgress(0)
-            await playNextSong(setProgress)
-          }, remainingDuration)
-        }
+        const remainingDuration =
+          playerState.track.duration - (playerState.playbackPosition + 1500)
+
+        timerRef.current = setTimeout(async () => {
+          setProgress(0)
+          await playNextSong(setProgress)
+        }, remainingDuration)
       } catch (error) {
         console.log("Error fetching player state: ", error)
       }

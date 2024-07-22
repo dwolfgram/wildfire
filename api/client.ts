@@ -1,4 +1,3 @@
-import Constants from "expo-constants"
 import { TokenResponse } from "@/hooks/auth/useAuth"
 import {
   getAccessToken,
@@ -12,35 +11,54 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios"
+import { setUser } from "@/state/user"
+import { RESET } from "jotai/utils"
+import Toast from "react-native-toast-message"
 
 type FailedQueueItem = {
   resolve: (token: string) => void
   reject: (error: any) => void
 }
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL
+
 const baseApi: AxiosInstance = axios.create({
-  baseURL: "http://192.168.1.141:4001/api/v1",
+  baseURL: API_URL,
 })
 
 const fetchNewTokens = async (): Promise<TokenResponse> => {
-  const refreshToken = getSpotifyRefreshToken()
-  const response = await baseApi.post<TokenResponse>("/auth/refresh-token", {
-    refreshToken,
-  })
+  const refreshToken = await getSpotifyRefreshToken()
+  const response = await axios.post<TokenResponse>(
+    `${API_URL}/auth/refresh-token`,
+    {
+      refreshToken,
+    }
+  )
   return response.data
 }
 
-// TO DO: UPDATE SPOTIFY ACCESS,REFRSH TOKENS ALSO
-const updateNewTokens = (tokens: TokenResponse) => {
-  setAccessToken(tokens.wildfire_token)
-  setSpotifyAccessToken(tokens.spotify_auth.access_token)
-  setSpotifyRefreshToken(tokens.spotify_auth.refresh_token)
+const updateNewTokens = async (tokens: TokenResponse) => {
+  await setAccessToken(tokens.wildfire_token)
+  await setSpotifyAccessToken(tokens.spotify_auth.access_token)
+  await setSpotifyRefreshToken(tokens.spotify_auth.refresh_token)
   baseApi.defaults.headers.common.Authorization = `Bearer ${tokens.wildfire_token}`
 }
 
+const logout = async () => {
+  await setAccessToken("")
+  await setSpotifyAccessToken("")
+  await setSpotifyRefreshToken("")
+  await setUser(RESET)
+  Toast.show({
+    type: "error",
+    text1: "error",
+    text2: "unable to refesh your login session",
+  })
+}
+
 baseApi.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const accessToken = getAccessToken()
+  async (config: InternalAxiosRequestConfig) => {
+    const accessToken = await getAccessToken()
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
@@ -82,7 +100,8 @@ const addToFailedQueue = (
 baseApi.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
-    const originalRequest = error.config
+    const originalRequest: InternalAxiosRequestConfig & { _retry: boolean } =
+      error.config
 
     if (error.response?.status === 429) {
       // Handle rate limiting
@@ -94,28 +113,32 @@ baseApi.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return await addToFailedQueue(originalRequest)
-      }
-
+    if (error.response?.status === 401 && !isRefreshing) {
       originalRequest._retry = true
       isRefreshing = true
 
       try {
         const tokens = await fetchNewTokens()
-        updateNewTokens(tokens)
+        await updateNewTokens(tokens)
         originalRequest.headers.Authorization = `Bearer ${tokens.wildfire_token}`
         processQueue(null, tokens.wildfire_token)
         return baseApi(originalRequest)
       } catch (err) {
         processQueue(err, null)
+        await logout()
         return Promise.reject(err)
       } finally {
         isRefreshing = false
       }
     }
 
+    if (isRefreshing) {
+      return await addToFailedQueue(originalRequest)
+    }
+    console.log(
+      "Request failed with status other than 401 or 429:",
+      error.response?.status
+    )
     return Promise.reject(error)
   }
 )

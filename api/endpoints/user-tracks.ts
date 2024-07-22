@@ -1,6 +1,6 @@
 import { SimplifiedPlaylist } from "@spotify/web-api-ts-sdk"
 import baseApi from "../client"
-import { TrackType, UserTrack } from "@/lib/types/user-track"
+import { Song, TrackType } from "@/lib/types/song"
 
 interface PageType {
   page: number
@@ -12,7 +12,7 @@ export const fetchUserTracksByType = async (
   trackType: TrackType,
   { page = 1, limit = 20 }: PageType
 ) => {
-  const { data } = await baseApi.get<UserTrack[]>(`/user-tracks/${userId}`, {
+  const { data } = await baseApi.get<Song[]>(`/user-tracks/${userId}`, {
     params: {
       trackType,
       page,
@@ -30,13 +30,10 @@ export const fetchUserDiscoverWeeklyPlaylists = async () => {
 }
 
 export const fetchWildfireWeekly = async (userId: string) => {
-  const { data } = await baseApi.get<UserTrack[]>(
-    "/user-tracks/wildfire-weekly",
-    {
-      params: {
-        userId,
-      },
-    }
-  )
+  const { data } = await baseApi.get<Song[]>("/user-tracks/wildfire-weekly", {
+    params: {
+      userId,
+    },
+  })
   return data
 }

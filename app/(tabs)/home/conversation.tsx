@@ -26,11 +26,12 @@ const MessageItem = ({
   handleAddToQueue: (index: number) => void
   index: number
 }) => {
+  console.log("history:", song.history)
   return (
     <Track
       onPress={() => handleAddToQueue(index)}
       track={song}
-      userId={song.sender.id}
+      userId={song.sender?.id}
       sendSongHref={"(tabs)/home/send-song"}
     />
   )
@@ -38,14 +39,15 @@ const MessageItem = ({
 
 const ConversationScreen = () => {
   const { conversationId } = useLocalSearchParams()
-  const [user] = useAtom(userAtom)
-  const { data: conversation, isFetching: isLoading } =
-    useFetchConversationByIdQuery(conversationId as string)
-  const { mutateAsync: markConversationAsSeen } = useMarkConversationAsSeen()
   const isFocused = useIsFocused()
   const router = useRouter()
   const colorScheme = useColorScheme()
   const { addToQueueAndPlay, currentSong } = usePlayer()
+
+  const [user] = useAtom(userAtom)
+  const { data: conversation, isLoading: isLoading } =
+    useFetchConversationByIdQuery(conversationId as string)
+  const { mutateAsync: markConversationAsSeen } = useMarkConversationAsSeen()
 
   const otherUser =
     user?.id === conversation?.userAId
@@ -55,17 +57,21 @@ const ConversationScreen = () => {
   const handleAddToQueue = useCallback(
     (index: number) => {
       if (conversation?.messages) {
-        addToQueueAndPlay(conversation?.messages.slice(index))
+        addToQueueAndPlay(conversation?.messages, index)
       }
     },
     [conversation?.messages]
   )
 
   useEffect(() => {
-    if (isFocused) {
+    if (
+      isFocused &&
+      conversation?._count?.messages &&
+      conversation._count?.messages > 0
+    ) {
       markConversationAsSeen(conversationId as string)
     }
-  }, [isFocused])
+  }, [isFocused, conversation?._count?.messages])
 
   return (
     <ThemedSafeAreaView className="h-full">
@@ -87,7 +93,7 @@ const ConversationScreen = () => {
         >
           <Pressable>
             <ThemedText className="font-semibold text-lg">
-              {otherUser?.username}
+              {otherUser?.username || " "}
             </ThemedText>
           </Pressable>
         </Link>

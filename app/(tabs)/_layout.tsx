@@ -1,9 +1,5 @@
-import { Redirect, Stack, Tabs } from "expo-router"
+import { Redirect, Tabs, useRouter } from "expo-router"
 import React, { useEffect } from "react"
-import {
-  PlayerState,
-  remote as SpotifyRemote,
-} from "react-native-spotify-remote"
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon"
 import useAuth from "@/hooks/auth/useAuth"
@@ -12,46 +8,32 @@ import Player from "@/components/Player"
 import { TAB_BAR_HEIGHT } from "@/constants/tabBar"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useAtom } from "jotai"
-import { currentSongAtom, isPlayingAtom } from "@/state/player"
+import { currentSongAtom } from "@/state/player"
+import { useTheme } from "@react-navigation/native"
+import { userAtom } from "@/state/user"
+import { isSignedInAtom } from "@/state/auth"
 
 export default function TabLayout() {
-  const { isSignedIn, session } = useAuth()
+  const theme = useTheme()
+  const [user] = useAtom(userAtom)
+  const { signOut } = useAuth()
+  const [isSignedIn] = useAtom(isSignedInAtom)
   const { bottom } = useSafeAreaInsets()
   const [currentSong] = useAtom(currentSongAtom)
-  const [isPlaying, setIsPlaying] = useAtom(isPlayingAtom)
 
-  const handleRemoteConnected = () => console.log("REMOTE CONNECTED!")
-  const handleRemoteDisconnected = () => console.log("REMOTE DISCONNECTED!")
+  // useEffect(() => {
+  //   signOut()
+  // }, [])
 
-  useEffect(() => {
-    const remoteConnectedListener = SpotifyRemote.addListener(
-      "remoteConnected",
-      handleRemoteConnected
-    )
-    const remoteDisconnectedListener = SpotifyRemote.addListener(
-      "remoteDisconnected",
-      handleRemoteDisconnected
-    )
-    const playerStateListener = SpotifyRemote.addListener(
-      "playerStateChanged",
-      (data: PlayerState) => {
-        // @ts-ignore
-        // setIsPlaying(!data[0].isPaused)
-      }
-    )
+  // useEffect(() => {
 
-    return () => {
-      remoteConnectedListener.remove()
-      remoteDisconnectedListener.remove()
-      playerStateListener.remove()
-    }
-  }, [])
+  // }, [isSignedIn, ])
 
   if (!isSignedIn) {
     return <Redirect href="(auth)" />
   }
 
-  if (!session.user?.username) {
+  if (isSignedIn && !user?.username) {
     return <Redirect href="(auth)/username" />
   }
 
@@ -61,7 +43,7 @@ export default function TabLayout() {
         screenOptions={{
           tabBarLabel: () => null,
           tabBarActiveTintColor: "#ea580c",
-          tabBarInactiveTintColor: "#9ca3af",
+          tabBarInactiveTintColor: theme.dark ? "#666" : "#9ca3af",
           headerShown: false,
           tabBarStyle: {
             height: TAB_BAR_HEIGHT + bottom,

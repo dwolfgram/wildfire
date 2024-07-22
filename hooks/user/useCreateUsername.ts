@@ -29,7 +29,7 @@ const useCreateUsername = () => {
       const { data } = await baseApi.patch<User>("/user/update", {
         username,
       })
-      setUser({
+      await setUser({
         ...user,
         ...data,
       })
