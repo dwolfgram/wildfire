@@ -1,4 +1,12 @@
-import { View, Text, Image, FlatList, TextInput, Pressable } from "react-native"
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  TextInput,
+  Pressable,
+  Platform,
+} from "react-native"
 import React, { useCallback, useEffect, useState } from "react"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { ThemedView } from "@/components/ThemedView"
@@ -17,6 +25,7 @@ import { useFetchFollowersQuery } from "@/api/queries/follow"
 import { FetchFollowersResponse } from "@/api/endpoints/follow"
 import { useSendSong } from "@/api/queries/song"
 import Toast from "react-native-toast-message"
+import { currentSongAtom, isPlayingAtom } from "@/state/player"
 
 const FollowerItem = ({
   item: user,
@@ -54,6 +63,7 @@ const FollowerItem = ({
 const SendSongModal = () => {
   const theme = useTheme()
   const [user] = useAtom(userAtom)
+  const [currentSong] = useAtom(currentSongAtom)
   const { song: songString, historySongIds } = useLocalSearchParams()
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const { mutateAsync: sendSong, isPending: isSending } = useSendSong()
@@ -79,8 +89,6 @@ const SendSongModal = () => {
     },
     [selectedUsers]
   )
-
-  console.log("historySongIds:", historySongIds)
 
   const handleSendSong = async () => {
     const sentSongs = await sendSong({
@@ -112,11 +120,26 @@ const SendSongModal = () => {
 
   return (
     <ThemedSafeAreaView
-      edges={{ top: "off", bottom: "maximum" }}
+      edges={{
+        top: Platform.OS === "ios" ? "off" : "maximum",
+        bottom: "maximum",
+      }}
       className="h-full"
     >
       <ThemedView className="border-b border-gray-100 dark:border-neutral-800 pb-3 px-5">
-        <View className="self-center flex-row items-center mt-4">
+        {Platform.OS === "android" && (
+          <Pressable
+            onPress={() => router.back()}
+            className="min-w-[20px] absolute top-[10px] left-[15px]"
+          >
+            <Ionicons
+              name="chevron-back"
+              size={26}
+              color={theme.dark ? "#FFF" : "#222"}
+            />
+          </Pressable>
+        )}
+        <View className="self-center flex-row items-center ios:mt-4">
           <Image
             className="mr-2"
             source={{ uri: song.albumImage }}
@@ -170,7 +193,9 @@ const SendSongModal = () => {
         }
         showsVerticalScrollIndicator={false}
       />
-      <View className="px-5">
+      <View
+        className={`px-5 ${currentSong ? "android:mb-[90px]" : "android:mb-5"}`}
+      >
         <Button
           onPress={handleSendSong}
           buttonStyle={[

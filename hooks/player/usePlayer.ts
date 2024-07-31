@@ -9,14 +9,13 @@ import {
   previousSongInQueueAtom,
   togglePlayPauseAtom,
 } from "@/state/player"
-import { useAtom } from "jotai"
+import { useAtom, useSetAtom } from "jotai"
 import { useCallback, useState } from "react"
 import useAuth from "../auth/useAuth"
 import { remote as SpotifyRemote } from "react-native-spotify-remote"
 import { isErrorWithMessage } from "@/utils/isErrorWithMessage"
 import Toast from "react-native-toast-message"
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av"
-import { Sound } from "expo-av/build/Audio"
+import * as Haptics from "expo-haptics"
 
 const usePlayer = () => {
   const { authenticateSpotify } = useAuth()
@@ -24,57 +23,38 @@ const usePlayer = () => {
   const [currentSong] = useAtom(currentSongAtom)
   const [nextSongInQueue] = useAtom(nextSongInQueueAtom)
   const [previousSongInQueue] = useAtom(previousSongInQueueAtom)
-  const [_, skipToNextInQueue] = useAtom(playNextAtom)
-  const [_____, skipToPreviousInQueue] = useAtom(playPreviousAtom)
-  const [__, togglePlayPause] = useAtom(togglePlayPauseAtom)
-  const [___, addToQueue] = useAtom(addToQueueAtom)
-  const [currentSound, setCurrentSound] = useState<Sound | null>(null)
+  const skipToNextInQueue = useSetAtom(playNextAtom)
+  const skipToPreviousInQueue = useSetAtom(playPreviousAtom)
+  const togglePlayPause = useSetAtom(togglePlayPauseAtom)
+  const addToQueue = useSetAtom(addToQueueAtom)
 
   const ensureSpotifyIsReady = async (uri?: string) => {
     try {
       const isConnected = await SpotifyRemote.isConnectedAsync()
       if (!isConnected) {
         await authenticateSpotify(uri)
-        // setIsPlaying(true)
+        setIsPlaying(true)
         throw new Error("reauthed, skipping rest of actions.")
       }
     } catch (err) {
       console.log("Error ensuring spotify is ready.")
-      // Toast.show({
-      //   type: "error",
-      //   text1: "spotify app disconnected",
-      //   text2: "if problems persist exit spotify and wildfire and then reopen",
-      //   position: "top",
-      //   topOffset: 54,
-      //   visibilityTime: 7000,
-      // })
       throw err
     }
   }
 
   const playCurrentSong = useCallback(async (song: Partial<Song>) => {
     try {
-      // setIsPlaying(true)
-      // if (!currentSound) {
-      //   const { sound } = await Audio.Sound.createAsync(
-      //     require("@/assets/sounds/silence.mp3")
-      //   )
-      //   setCurrentSound(sound)
-      //   await Audio.setAudioModeAsync({
-      //     staysActiveInBackground: true,
-      //     interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-      //     interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-      //     playsInSilentModeIOS: true,
-      //   })
-      //   await sound.setIsLoopingAsync(true)
-      //   await sound.playAsync()
-      // }
       await ensureSpotifyIsReady(song.spotifyUri)
       await SpotifyRemote.playUri(song.spotifyUri!)
+      console.log("PLAYING SONG")
+      setIsPlaying(true)
     } catch (err) {
       if (isErrorWithMessage(err) && !err.message.includes("reauthed")) {
         console.log("Pausing song due to error.", err)
         setIsPlaying(false)
+      } else {
+        console.log("PLAYING SONG ERROR")
+        setIsPlaying(true)
       }
       throw err
     }
@@ -88,8 +68,6 @@ const usePlayer = () => {
           startIndex,
         })
         await playCurrentSong(songs[startIndex])
-        await SpotifyRemote.queueUri(songs[startIndex + 1].spotifyUri!)
-        await SpotifyRemote.queueUri(songs[startIndex + 2].spotifyUri!)
       } catch (err) {
         console.log("Error adding to queue and playing")
       }
@@ -103,23 +81,20 @@ const usePlayer = () => {
       setCurrentPosition: (value: number) => void
     ) => {
       try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
         // if no more songs, play button repeats the last song
         if (!nextSongInQueue && currentPosition === 0) {
           await playCurrentSong(currentSong!)
           return
         }
 
-        // setIsPlaying(true)
         await ensureSpotifyIsReady(currentSong?.spotifyUri)
         await SpotifyRemote.resume()
-        // await currentSound?.playAsync()
+        setIsPlaying(true)
       } catch (err) {
         console.log("Error playing song", err)
         if (isErrorWithMessage(err) && err.message.includes("reauthed")) {
-          // await pauseSong()
-          // await SpotifyRemote.seek(currentPosition)
-          // await playSong(currentPosition)
-          // console.log("show toast!")
+          setIsPlaying(true)
           setCurrentPosition(0)
           Toast.show({
             type: "error",
@@ -140,13 +115,15 @@ const usePlayer = () => {
 
   const pauseSong = useCallback(async () => {
     try {
-      // setIsPlaying(false)
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
       await ensureSpotifyIsReady()
       await SpotifyRemote.pause()
-      // await currentSound?.pauseAsync()
+      setIsPlaying(false)
     } catch (err) {
       if (isErrorWithMessage(err) && err.message.includes("reauthed")) {
         setIsPlaying(true)
+      } else {
+        setIsPlaying(false)
       }
       console.log("Error pausing song", err)
     }
@@ -155,6 +132,7 @@ const usePlayer = () => {
   const playNextSong = useCallback(
     async (setCurrentPosition: (value: number) => void) => {
       try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
         if (nextSongInQueue) {
           skipToNextInQueue()
           setCurrentPosition(0)
@@ -177,6 +155,7 @@ const usePlayer = () => {
       setCurrentPosition: (value: number) => void
     ) => {
       try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
         if (currentPosition > 2000) {
           if (isPlaying) {
             setCurrentPosition(0)

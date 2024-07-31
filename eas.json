@@ -7,7 +7,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_SPOTIFY_CLIENT_ID": "0660cc98db1148ec8d195b55d3e891d9"
+        "EXPO_PUBLIC_SPOTIFY_CLIENT_ID": "0660cc98db1148ec8d195b55d3e891d9",
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.141:4001/api/v1"
       }
     },
     "preview": {
@@ -15,7 +16,8 @@
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_SPOTIFY_CLIENT_ID": "0660cc98db1148ec8d195b55d3e891d9"
+        "EXPO_PUBLIC_SPOTIFY_CLIENT_ID": "0660cc98db1148ec8d195b55d3e891d9",
+        "EXPO_PUBLIC_API_URL": "https://wildfire-rn-server-ca2e6bb8ede9.herokuapp.com/api/v1"
       }
     }
   },

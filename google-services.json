@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "997902633666",
+    "project_id": "wildfire-rn",
+    "storage_bucket": "wildfire-rn.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997902633666:android:b3a9b4b8e0a5bea230495b",
+        "android_client_info": {
+          "package_name": "com.wildfire.rn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwmVWqqlqqEL_6ePUiftxVl2M-VtYvt-U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

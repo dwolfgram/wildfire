@@ -1,5 +1,5 @@
 import baseApi from "@/api/client"
-import { useAtom } from "jotai"
+import { useAtom, useSetAtom } from "jotai"
 import {
   accessTokenAtom,
   isSignedInAtom,
@@ -22,6 +22,7 @@ import { isPlayingAtom } from "@/state/player"
 import Toast from "react-native-toast-message"
 import { RESET } from "jotai/utils"
 import axios from "axios"
+import { Platform } from "react-native"
 
 interface Tokens {
   access_token: string
@@ -47,7 +48,8 @@ export const spotifyConfig: ApiConfig = {
   tokenSwapURL: "http://192.168.1.141:4001/api/v1/auth/token-swap",
   tokenRefreshURL:
     "http://192.168.1.141:4001/api/v1/auth/refresh-token-frontend",
-  showDialog: false,
+  showDialog: true,
+  authType: "CODE",
   scopes: [
     ApiScope.AppRemoteControlScope,
     ApiScope.PlaylistModifyPrivateScope,
@@ -84,7 +86,22 @@ const useAuth = () => {
   )
   const [isSignedIn] = useAtom(isSignedInAtom)
   const [user, setUser] = useAtom(userAtom)
-  const [_, setIsPlaying] = useAtom(isPlayingAtom)
+  const setIsPlaying = useSetAtom(isPlayingAtom)
+
+  const swapCodeForTokens = async (code: string) => {
+    try {
+      const { data } = await axios.post<AccessToken>(
+        "http://192.168.1.141:4001/api/v1/auth/token-swap",
+        {
+          code,
+        }
+      )
+      return data
+    } catch (err) {
+      console.log("Error swapping code for tokens:", err)
+      throw err
+    }
+  }
 
   const authenticateSpotify = async (uri?: string) => {
     try {
@@ -94,24 +111,26 @@ const useAuth = () => {
         playURI: uri,
       })
 
-      if (uri) {
-        setIsPlaying(true)
-      }
-
       const isConnected = await SpotifyRemote.isConnectedAsync()
       if (!isConnected) {
         await SpotifyRemote.connect(session.accessToken)
       }
 
-      await handleSignInOrSignUp({
-        access_token: session.accessToken,
-        refresh_token: session.refreshToken,
-        expires_in: 3600,
-        token_type: "Bearer",
-      })
+      if (uri) {
+        setIsPlaying(true)
+      }
 
-      console.log("isConnected", isConnected)
-      // await SpotifyRemote.playUri("spotify:track:3CDGdnri4kiyWKlcl25bYJ")
+      if (Platform.OS === "android") {
+        const spotifySession = await swapCodeForTokens(session.accessToken)
+        await handleSignInOrSignUp(spotifySession)
+      } else {
+        await handleSignInOrSignUp({
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: 3600,
+          token_type: "Bearer",
+        })
+      }
 
       return session
     } catch (err) {
@@ -149,14 +168,15 @@ const useAuth = () => {
         authenticateSpotify(),
         MAX_LOGIN_TIMEOUT(),
       ])
-      const formattedTokens = {
-        access_token: session.accessToken,
-        refresh_token: session.refreshToken,
-        expires_in: 3600,
-        token_type: "Bearer",
-      }
-      const data = await handleSignInOrSignUp(formattedTokens)
-      return data
+      console.log(session)
+      // const formattedTokens = {
+      //   access_token: session.accessToken,
+      //   refresh_token: session.refreshToken,
+      //   expires_in: 3600,
+      //   token_type: "Bearer",
+      // }
+      // const data = await handleSignInOrSignUp(formattedTokens)
+      return session
     } catch (err) {
       Toast.show({
         type: "error",

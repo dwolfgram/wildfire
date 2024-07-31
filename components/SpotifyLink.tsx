@@ -1,5 +1,5 @@
 import React from "react"
-import { TouchableOpacity, Linking, StyleSheet } from "react-native"
+import { TouchableOpacity, Linking, StyleSheet, View } from "react-native"
 import { FontAwesome5 } from "@expo/vector-icons"
 
 interface SpotifyLinkProps {
@@ -23,10 +23,13 @@ const SpotifyLink = ({ uri, size }: SpotifyLinkProps) => {
 
   return (
     <TouchableOpacity
-      style={{ width: size - 1, height: size - 1 }}
-      className="bg-[#191414] items-center justify-center rounded-full overflow-hidden"
+      className="items-center justify-center"
       onPress={openSpotify}
     >
+      <View
+        style={{ width: size - 3, height: size - 3 }}
+        className="bg-[#191414] top-[2px] rounded-full absolute"
+      />
       <FontAwesome5 name="spotify" size={size} color="#1DB954" />
     </TouchableOpacity>
   )

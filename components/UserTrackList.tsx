@@ -78,8 +78,9 @@ const UserTrackList = ({
       )}
       keyExtractor={(item) => item.id}
       estimatedItemSize={63}
+      removeClippedSubviews
       // @ts-ignore
-      contentContainerStyle={[tw`pb-10`, currentSong && { paddingBottom: 110 }]}
+      contentContainerStyle={{ paddingBottom: currentSong ? 80 : 20 }}
       ListHeaderComponent={header}
       ListEmptyComponent={
         <ThemedView className="items-center justify-center pt-4">
@@ -92,8 +93,6 @@ const UserTrackList = ({
       onEndReached={onEndReached}
       ListFooterComponent={footer}
       onEndReachedThreshold={onEndReachedThreshold}
-      maxToRenderPerBatch={10}
-      initialNumToRender={10}
       extraData={{
         linkHref,
         handleAddToQueue,

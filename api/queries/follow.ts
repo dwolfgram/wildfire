@@ -13,7 +13,7 @@ import {
 import useAuth from "@/hooks/auth/useAuth"
 import { userQueryKeys } from "./user"
 
-const followQueryKeys = {
+export const followQueryKeys = {
   all: ["follow"] as const,
   getFollowers: (userId: string) =>
     [...followQueryKeys.all, "followers", userId] as const,

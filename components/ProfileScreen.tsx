@@ -107,7 +107,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
         </ThemedText>
         <ThemedView className="min-w-[20px]"></ThemedView>
       </ThemedView>
-      <ThemedView className="px-5 h-full">
+      <ThemedView className="px-5 h-full flex-1">
         <UserTrackList
           data={
             (playlistType === PLAYLIST_TYPES.wildfire

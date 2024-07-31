@@ -1,4 +1,4 @@
-import { View, Text, AppState, AppStateStatus } from "react-native"
+import { View, Text, AppState, AppStateStatus, Platform } from "react-native"
 import React, { useEffect, useState } from "react"
 import MiniPlayer from "./mini-player"
 import Modal from "react-native-modal"
@@ -11,14 +11,16 @@ import {
   remote as SpotifyRemote,
   PlayerState,
 } from "react-native-spotify-remote"
-import { useAtom } from "jotai"
-import { isPlayingAtom, queueAtom } from "@/state/player"
+import { useAtom, useSetAtom } from "jotai"
+import { currentSongIndexAtom, isPlayingAtom, queueAtom } from "@/state/player"
 
 const Player = () => {
   const { progress, setProgress } = useProgress()
   const { bottom } = useSafeAreaInsets()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [_, setIsPlaying] = useAtom(isPlayingAtom)
+  const setIsPlaying = useSetAtom(isPlayingAtom)
+  const [queue] = useAtom(queueAtom)
+  const setCurrentSongIndex = useSetAtom(currentSongIndexAtom)
 
   const handleTogglePlayer = () => {
     setIsModalOpen((prev) => !prev)
@@ -32,11 +34,22 @@ const Player = () => {
 
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-      if (nextAppState === "background" || nextAppState === "inactive") {
-        console.log("CLOSING!")
-      }
-      if (nextAppState === "active") {
-        console.log("JK ACTIVE BOI")
+      try {
+        if (nextAppState === "background") {
+          setIsPlaying(false)
+        }
+        if (nextAppState === "active") {
+          const playbackState = await SpotifyRemote.getPlayerState()
+          const nowPlayingIndex = queue.findIndex(
+            (song) => song.name === playbackState.track.name
+          )
+          if (!playbackState.isPaused && nowPlayingIndex >= 0) {
+            setCurrentSongIndex(nowPlayingIndex)
+            setIsPlaying(true)
+          }
+        }
+      } catch (err) {
+        console.log("Error in app state change", err)
       }
     }
 
@@ -44,9 +57,7 @@ const Player = () => {
       "change",
       handleAppStateChange
     )
-    console.log("Subscribing!")
 
-    // Cleanup the subscription on unmount
     return () => {
       subscription.remove()
     }
@@ -64,8 +75,12 @@ const Player = () => {
     const playerStateListener = SpotifyRemote.addListener(
       "playerStateChanged",
       async (data: PlayerState) => {
-        // @ts-ignore
-        setIsPlaying(!data[0].isPaused)
+        if (Platform.OS === "android") {
+          setIsPlaying(!data.isPaused)
+        } else {
+          // @ts-ignore
+          setIsPlaying(!data[0].isPaused)
+        }
       }
     )
 

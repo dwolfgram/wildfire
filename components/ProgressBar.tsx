@@ -58,7 +58,7 @@ const ProgressBar = ({
         tapToSeek={false}
       />
       {showTimes && (
-        <View className="flex-row justify-between">
+        <View className="flex-row justify-between android:mt-3">
           <ThemedText className="text-gray-500 dark:text-neutral-400">
             {display(progress / 1000)}
           </ThemedText>

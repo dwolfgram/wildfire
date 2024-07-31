@@ -2,6 +2,7 @@ import { Image, ScrollView, View } from "react-native"
 import React from "react"
 import tw from "twrnc"
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5"
+import { Ionicons } from "@expo/vector-icons"
 import { Button } from "@rneui/themed"
 
 import * as WebBrowser from "expo-web-browser"
@@ -36,11 +37,22 @@ const LoginScreen = () => {
             share music with your friends
           </ThemedText>
         </View>
-        <Image
-          className="w-[120px] h-[143px]"
-          source={require("@/assets/images/ski-free.png")}
-          resizeMode="contain"
-        />
+        <View>
+          <View className="absolute top-[-15px] right-[30px] z-10">
+            <Ionicons name="musical-notes" color={"#000"} />
+            <Ionicons
+              style={tw`left-[10px]`}
+              name="musical-notes"
+              color={"#000"}
+            />
+          </View>
+
+          <Image
+            className="w-[120px] h-[143px] z-1"
+            source={require("@/assets/images/ski-free.png")}
+            resizeMode="contain"
+          />
+        </View>
         <Button
           icon={
             <View className="mr-4">
@@ -49,7 +61,8 @@ const LoginScreen = () => {
           }
           loading={isSigningIn}
           disabled={isSigningIn}
-          buttonStyle={tw`w-full bg-[#1DB954] px-5 py-3 min-h-[60px] rounded-full`}
+          containerStyle={tw`w-[80%] rounded-full`}
+          buttonStyle={tw`justify-center bg-[#1DB954] px-5 py-3 min-h-[60px] rounded-full`}
           title="Continue with Spotify"
           titleStyle={tw`text-[#191414] font-semibold`}
           onPress={async () => await signIn()}

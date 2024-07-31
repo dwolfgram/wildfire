@@ -14,10 +14,10 @@ import ProgressBar from "../ProgressBar"
 import Toast from "react-native-toast-message"
 import { toastConfig } from "@/lib/toast"
 import SpotifyLink from "../SpotifyLink"
-import * as Haptics from "expo-haptics"
 import TrackHistory from "../Track/TrackHistory"
 import { useRouter, useSegments } from "expo-router"
 import LikeButton from "../LikeButton"
+import SendButton from "../SendButton"
 
 const FullScreenPlayer = ({
   setProgress,
@@ -65,33 +65,32 @@ const FullScreenPlayer = ({
   }, [currentSong?.id])
 
   const handlePlayPreviousSong = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
     await playPreviousSong(progress, setProgress)
   }, [playPreviousSong])
 
   const handlePlayNextSong = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
     await playNextSong(setProgress)
   }, [playNextSong])
 
   const handleTogglePlay = useCallback(async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
     isPlaying ? await pauseSong() : await playSong(progress, setProgress)
   }, [progress, isPlaying])
 
   return (
-    <ThemedView className="flex-1 w-full h-full px-5 pt-5">
+    <ThemedView className="flex-1 w-full h-full px-5 ios:pt-5 android:pb-5">
       <View className="m-0">
-        <View className="flex-row items-center justify-between py-4">
+        <View className="flex-row items-center justify-between ios:py-4 android:pb-4">
           <Pressable onPress={onPress}>
             <Icon name="chevron-down" color={iconColor} size={24} />
           </Pressable>
           <View>
             <ThemedText>{currentSong?.artistName}</ThemedText>
           </View>
-          <Pressable onPress={onPress}>
-            <Icon name="more-horizontal" color={iconColor} size={24} />
-          </Pressable>
+          <SendButton
+            track={currentSong!}
+            href={`${segments[0]}/${segments[1]}/send-song`}
+            onPress={onPress}
+          />
         </View>
         <Image
           source={{
@@ -130,7 +129,7 @@ const FullScreenPlayer = ({
             </View>
           </View>
         </View>
-        <View className="my-3">
+        <View className="ios:my-3 android:my-5">
           <ProgressBar
             progress={progress}
             duration={currentSong?.durationMs!}

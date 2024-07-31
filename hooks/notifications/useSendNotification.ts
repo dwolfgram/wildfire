@@ -1,13 +1,25 @@
 import axios from "axios"
 
+interface SendNotificationParams {
+  title: string
+  body: string
+  expoPushToken: string
+  data?: Record<string, string>
+}
+
 const useSendNotification = () => {
-  const sendPushNotification = async (expoPushToken: string) => {
+  const sendPushNotification = async ({
+    title,
+    body,
+    expoPushToken,
+    data,
+  }: SendNotificationParams) => {
     const message = {
       to: expoPushToken,
       sound: "default",
-      title: "Original Title",
-      body: "And here is the body!",
-      data: { someData: "goes here" },
+      title,
+      body,
+      data,
     }
 
     await axios.post("https://exp.host/--/api/v2/push/send", message, {

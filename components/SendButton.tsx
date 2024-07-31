@@ -10,9 +10,10 @@ interface SendButtonProps {
   href: string
   size?: number
   userId?: string
+  onPress?: Function
 }
 
-const SendButton = ({ track, size = 34, href }: SendButtonProps) => {
+const SendButton = ({ track, size = 34, href, onPress }: SendButtonProps) => {
   const { session } = useAuth()
   // songs from spotify search dont have an id
   const isDBSong = Boolean(track.id)
@@ -36,7 +37,7 @@ const SendButton = ({ track, size = 34, href }: SendButtonProps) => {
       push
     >
       <Pressable
-        onPress={() => null}
+        onPress={() => onPress && onPress()}
         style={{
           width: size,
           height: size,

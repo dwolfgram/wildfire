@@ -1,12 +1,12 @@
 import { fetchAuthedUser as fetchAuthedUserApi } from "@/api/endpoints/user"
 import { userAtom } from "@/state/user"
-import { useAtom } from "jotai"
+import { useAtom, useSetAtom } from "jotai"
 import { useEffect, useState } from "react"
 import useAuth from "../auth/useAuth"
 
 const useFetchAuthedUser = () => {
   const [isLoading, setIsLoading] = useState(true)
-  const [_, setUser] = useAtom(userAtom)
+  const setUser = useSetAtom(userAtom)
   const { isSignedIn } = useAuth()
 
   const fetchAuthedUser = async () => {
