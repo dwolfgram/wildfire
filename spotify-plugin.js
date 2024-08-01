@@ -3,6 +3,7 @@ const {
   withAppDelegate,
   withDangerousMod,
   withXcodeProject,
+  withInfoPlist,
 } = require("@expo/config-plugins")
 const { resolve } = require("path")
 const { readFileSync, writeFileSync } = require("fs")
@@ -54,6 +55,19 @@ function withSpotifyPodfileProperties(config) {
   ])
 }
 
+function withSpotifyPlistProperties(config) {
+  return withInfoPlist(config, (cfg) => {
+    const { modResults } = cfg
+
+    cfg.modResults = {
+      ...modResults,
+      LSApplicationQueriesSchemes: ["spotify"],
+    }
+
+    return cfg
+  })
+}
+
 function withSpotifyFramework(config) {
   return withXcodeProject(config, (cfg) => {
     const xcodeProject = cfg.modResults
@@ -84,6 +98,7 @@ function withSpotify(config) {
     withSpotifyAppDelegate,
     withSpotifyPodfileProperties,
     withSpotifyFramework,
+    withSpotifyPlistProperties,
   ])
 }
 

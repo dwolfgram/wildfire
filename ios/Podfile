@@ -14,6 +14,7 @@ install! 'cocoapods',
 prepare_react_native_project!
 
 target 'wildfire' do
+  pod 'RNSpotifyRemote', :path => '../node_modules/react-native-spotify-remote'
   use_expo_modules!
   config = use_native_modules!
 
@@ -49,16 +50,6 @@ target 'wildfire' do
   end
 
   post_integrate do |installer|
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
     begin
       expo_patch_react_imports!(installer)
     rescue => e

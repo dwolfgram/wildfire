@@ -1,8 +1,9 @@
 #import "AppDelegate.h"
 
+#import <RNSpotifyRemote.h>
+
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
-#import <RNSpotifyRemote.h>
 
 @implementation AppDelegate
 

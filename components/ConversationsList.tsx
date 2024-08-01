@@ -105,7 +105,7 @@ const ConversationsList = ({ data, isLoading }: ConversationListProps) => {
       ListEmptyComponent={
         <ThemedView className="items-center justify-center pt-1">
           <ThemedText className="opacity-50">
-            {isLoading ? "loading..." : "no results"}
+            {isLoading ? "loading..." : "no music sent yet"}
           </ThemedText>
         </ThemedView>
       }

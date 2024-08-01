@@ -10,7 +10,6 @@ import ConversationsList from "@/components/ConversationsList"
 import useRegisterNotifications from "@/hooks/notifications/useRegisterForNotifications"
 import { useEffect, useRef, useState } from "react"
 import useUpdateNotificationPushToken from "@/hooks/notifications/useUpdateNotificationPushToken"
-import useSendNotification from "@/hooks/notifications/useSendNotification"
 import NotificationIcon from "@/components/NotificationIcon"
 import { View } from "react-native"
 import { useQueryClient } from "@tanstack/react-query"
@@ -27,7 +26,7 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldSetBadge: true,
   }),
 })
 

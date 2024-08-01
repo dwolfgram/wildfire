@@ -93,7 +93,7 @@ const ConversationScreen = () => {
         >
           <Pressable>
             <ThemedText className="font-semibold text-lg">
-              {otherUser?.username || " "}
+              @{otherUser?.username || " "}
             </ThemedText>
           </Pressable>
         </Link>

@@ -14,8 +14,8 @@ import { Ionicons } from "@expo/vector-icons"
 import { router } from "expo-router"
 import { useIsFocused, useTheme } from "@react-navigation/native"
 import { User } from "@/lib/types/user"
-import { Song } from "@/lib/types/song"
 import { getTimeAgo } from "@/utils/getTimeAgo"
+import useSetNotificationBadge from "@/hooks/notifications/useSetNotificationBadge"
 
 interface NotificationItemProps {
   item: Notification
@@ -87,10 +87,12 @@ const NotificationScreen = () => {
   })
   const { data } = useFetchUnreadNotificationCount()
   const { mutateAsync: markNotificationsAsSeen } = useMarkNotificationsAsSeen()
+  const { resetBadgeCount } = useSetNotificationBadge()
 
   useEffect(() => {
     if (isFocused && data?.count && data.count > 0) {
       markNotificationsAsSeen()
+      resetBadgeCount()
     }
   }, [isFocused, data?.count])
 

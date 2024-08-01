@@ -23,6 +23,7 @@ import Toast from "react-native-toast-message"
 import { RESET } from "jotai/utils"
 import axios from "axios"
 import { Platform } from "react-native"
+import { isErrorWithMessage } from "@/utils/isErrorWithMessage"
 
 interface Tokens {
   access_token: string
@@ -49,7 +50,7 @@ export const spotifyConfig: ApiConfig = {
   redirectURL: redirectUri,
   tokenSwapURL: `${API_URL}/auth/token-swap`,
   tokenRefreshURL: `${API_URL}/auth/refresh-token-frontend`,
-  showDialog: true,
+  showDialog: false,
   authType: "CODE",
   scopes: [
     ApiScope.AppRemoteControlScope,
@@ -112,15 +113,6 @@ const useAuth = () => {
         playURI: uri,
       })
 
-      const isConnected = await SpotifyRemote.isConnectedAsync()
-      if (!isConnected) {
-        await SpotifyRemote.connect(session.accessToken)
-      }
-
-      if (uri) {
-        setIsPlaying(true)
-      }
-
       if (Platform.OS === "android") {
         const spotifySession = await swapCodeForTokens(session.accessToken)
         await handleSignInOrSignUp(spotifySession)
@@ -131,6 +123,15 @@ const useAuth = () => {
           expires_in: 3600,
           token_type: "Bearer",
         })
+      }
+
+      const isConnected = await SpotifyRemote.isConnectedAsync()
+      if (!isConnected) {
+        await SpotifyRemote.connect(session.accessToken)
+      }
+
+      if (uri) {
+        setIsPlaying(true)
       }
 
       return session
@@ -179,11 +180,18 @@ const useAuth = () => {
       // const data = await handleSignInOrSignUp(formattedTokens)
       return session
     } catch (err) {
-      Toast.show({
-        type: "error",
-        text1: "error signing in",
-        text2: "close wildfire and spotify and then reopen and try again",
-      })
+      if (
+        isErrorWithMessage(err) &&
+        !err.message
+          .toLowerCase()
+          .includes("ensure the spotify app is installed")
+      ) {
+        Toast.show({
+          type: "error",
+          text1: "error signing in",
+          text2: "close wildfire and spotify and then reopen and try again",
+        })
+      }
       console.log("Error signing in:", err)
     } finally {
       setIsSigningIn(false)

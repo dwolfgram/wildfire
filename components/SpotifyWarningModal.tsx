@@ -42,18 +42,19 @@ const SpotifyWarningModal = ({
       >
         <View className="w-full h-[300px] justify-between rounded-md p-4 bg-gray-50 dark:bg-neutral-800">
           <View>
-            <ThemedText className="font-semibold text-xl text-white">
+            <ThemedText className="font-semibold text-xl dark:text-white">
               important info
             </ThemedText>
             <ThemedText className="mt-2 dark:text-gray-300">
-              wildfire can't control playback when your phone is locked
+              wildfire can't control playback when in the background or your
+              phone is locked
             </ThemedText>
             <ThemedText className="mt-2 dark:text-gray-300">
-              if it locks then spotify will take over control of what songs are
-              playing
+              spotify will take over control of what songs are playing in those
+              cases
             </ThemedText>
             <ThemedText className="mt-2 dark:text-gray-300">
-              ya it sucks, sorry :/
+              ya lame, sorry :/
             </ThemedText>
           </View>
           <Button
