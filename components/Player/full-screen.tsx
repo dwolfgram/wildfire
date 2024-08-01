@@ -5,6 +5,7 @@ import {
   View,
   useColorScheme,
   Dimensions,
+  Platform,
 } from "react-native"
 import { Ionicons, Feather as Icon, AntDesign } from "@expo/vector-icons"
 import { ThemedText } from "../ThemedText"
@@ -89,7 +90,7 @@ const FullScreenPlayer = ({
           <SendButton
             track={currentSong!}
             href={`${segments[0]}/${segments[1]}/send-song`}
-            onPress={onPress}
+            onPress={Platform.OS === "android" ? onPress : undefined}
           />
         </View>
         <Image

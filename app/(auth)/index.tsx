@@ -10,11 +10,14 @@ import { ThemedText } from "@/components/ThemedText"
 import useAuth from "@/hooks/auth/useAuth"
 import { Redirect } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
+import { useTheme } from "@react-navigation/native"
 
 WebBrowser.maybeCompleteAuthSession() // required for web only
 
 const LoginScreen = () => {
   const { signIn, session, isSignedIn, isSigningIn } = useAuth()
+  const theme = useTheme()
 
   if (isSignedIn && session.user && !session.user?.username) {
     return <Redirect href="(auth)/username" />
@@ -25,31 +28,41 @@ const LoginScreen = () => {
   }
 
   return (
-    <SafeAreaView className="bg-white h-full">
+    <ThemedSafeAreaView className="h-full">
       <ScrollView
         contentContainerStyle={tw`h-full items-center justify-center gap-[50px]`}
       >
         <View className="items-center">
-          <ThemedText className="text-neutral-900" type="title">
+          <ThemedText className="text-neutral-900 dark:text-white" type="title">
             wildfire
           </ThemedText>
-          <ThemedText className="font-normal text-neutral-900" type="subtitle">
+          <ThemedText
+            className="font-normal text-neutral-900 dark:text-gray-400"
+            type="subtitle"
+          >
             share music with your friends
           </ThemedText>
         </View>
         <View>
           <View className="absolute top-[-15px] right-[30px] z-10">
-            <Ionicons name="musical-notes" color={"#000"} />
+            <Ionicons
+              name="musical-notes"
+              color={theme.dark ? "#fff" : "#000"}
+            />
             <Ionicons
               style={tw`left-[10px]`}
               name="musical-notes"
-              color={"#000"}
+              color={theme.dark ? "#fff" : "#000"}
             />
           </View>
 
           <Image
             className="w-[120px] h-[143px] z-1"
-            source={require("@/assets/images/ski-free.png")}
+            source={
+              theme.dark
+                ? require("@/assets/images/ski-free-dark.png")
+                : require("@/assets/images/ski-free.png")
+            }
             resizeMode="contain"
           />
         </View>
@@ -68,7 +81,7 @@ const LoginScreen = () => {
           onPress={async () => await signIn()}
         />
       </ScrollView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   )
 }
 

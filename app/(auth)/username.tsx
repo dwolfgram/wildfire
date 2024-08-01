@@ -19,7 +19,7 @@ const UsernameScreen = () => {
   const [isSignedIn] = useAtom(isSignedInAtom)
   const { setUsername, createUsername, username, error } = useCreateUsername()
 
-  if (isSignedIn && user?.username && user?.discoverWeeklyId) {
+  if (isSignedIn && user?.username && !user?.discoverWeeklyId) {
     return <Redirect href="(auth)/choose-discover-weekly" />
   }
 

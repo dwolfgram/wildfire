@@ -42,12 +42,13 @@ const redirectUri = makeRedirectUri({
   scheme: "com.wildfire.rn",
 })
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL
+
 export const spotifyConfig: ApiConfig = {
   clientID: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID,
   redirectURL: redirectUri,
-  tokenSwapURL: "http://192.168.1.141:4001/api/v1/auth/token-swap",
-  tokenRefreshURL:
-    "http://192.168.1.141:4001/api/v1/auth/refresh-token-frontend",
+  tokenSwapURL: `${API_URL}/auth/token-swap`,
+  tokenRefreshURL: `${API_URL}/auth/refresh-token-frontend`,
   showDialog: true,
   authType: "CODE",
   scopes: [
@@ -91,7 +92,7 @@ const useAuth = () => {
   const swapCodeForTokens = async (code: string) => {
     try {
       const { data } = await axios.post<AccessToken>(
-        "http://192.168.1.141:4001/api/v1/auth/token-swap",
+        `${API_URL}/auth/token-swap`,
         {
           code,
         }
@@ -199,7 +200,7 @@ const useAuth = () => {
   const refreshAccessToken = async () => {
     try {
       const { data } = await axios.post<TokenResponse>(
-        "http://192.168.1.141:4001/api/v1/auth/refresh-token",
+        `${API_URL}/auth/refresh-token`,
         {
           refreshToken: spotifyRefreshToken,
         }

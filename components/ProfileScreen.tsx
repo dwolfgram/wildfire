@@ -17,10 +17,7 @@ import { userAtom } from "@/state/user"
 import { Ionicons } from "@expo/vector-icons"
 import { ThemedSafeAreaView } from "./ThemedSafeAreaView"
 import { FollowListTypes } from "./FollowListScreen"
-import useFetchSavedTracks from "@/hooks/userTracks/useFetchSavedTracks"
 import UserTrackList from "./UserTrackList"
-import useFetchTopTracks from "@/hooks/userTracks/useFetchTopTracks copy"
-import useFetchDiscoverTracks from "@/hooks/userTracks/useFetchDiscoverTracks"
 import { useFollowUser, useUnfollowUser } from "@/api/queries/follow"
 import { useFetchUserProfileQuery } from "@/api/queries/user"
 import {
@@ -103,7 +100,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
           )}
         </Pressable>
         <ThemedText className="font-semibold text-lg">
-          {userProfile?.username}
+          @{userProfile?.username}
         </ThemedText>
         <ThemedView className="min-w-[20px]"></ThemedView>
       </ThemedView>

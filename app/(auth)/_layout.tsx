@@ -2,6 +2,7 @@ import { isSignedInAtom } from "@/state/auth"
 import { userAtom } from "@/state/user"
 import { Redirect, Stack } from "expo-router"
 import { useAtom } from "jotai"
+import { View } from "react-native"
 
 export default function AuthLayout() {
   const [user] = useAtom(userAtom)
