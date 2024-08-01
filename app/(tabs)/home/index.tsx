@@ -78,6 +78,11 @@ export default function HomeScreen() {
           queriesToInvalidate.push(
             userTracksQueryKeys.wildfireWeekly(user?.id!)
           )
+          queriesToInvalidate.push([
+            ...userTracksQueryKeys.all,
+            "playlists",
+            user?.id,
+          ])
         }
         // TODO: invalidate notification count query
         queriesToInvalidate.forEach((key) => {

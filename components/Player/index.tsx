@@ -1,4 +1,5 @@
 import { View, Text, AppState, AppStateStatus, Platform } from "react-native"
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake"
 import React, { useEffect, useState } from "react"
 import MiniPlayer from "./mini-player"
 import Modal from "react-native-modal"
@@ -18,7 +19,7 @@ const Player = () => {
   const { progress, setProgress } = useProgress()
   const { bottom } = useSafeAreaInsets()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const setIsPlaying = useSetAtom(isPlayingAtom)
+  const [isPlaying, setIsPlaying] = useAtom(isPlayingAtom)
   const [queue] = useAtom(queueAtom)
   const setCurrentSongIndex = useSetAtom(currentSongIndexAtom)
 
@@ -49,6 +50,7 @@ const Player = () => {
           }
         }
       } catch (err) {
+        setIsPlaying(false)
         console.log("Error in app state change", err)
       }
     }
@@ -90,6 +92,14 @@ const Player = () => {
       playerStateListener.remove()
     }
   }, [])
+
+  useEffect(() => {
+    if (isPlaying) {
+      activateKeepAwakeAsync()
+    } else {
+      deactivateKeepAwake()
+    }
+  }, [isPlaying])
 
   return (
     <>
