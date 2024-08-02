@@ -25,7 +25,7 @@ import { userTracksQueryKeys } from "@/api/queries/user-tracks"
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
+    shouldPlaySound: true,
     shouldSetBadge: true,
   }),
 })
@@ -66,6 +66,7 @@ export default function HomeScreen() {
       Notifications.addNotificationReceivedListener((notification) => {
         const queriesToInvalidate: any[] = [
           notificationQueryKeys.getUnreadCount(),
+          notificationQueryKeys.getUserNotifications(),
         ]
         const notificationType = notification.request.content.data.type
         const fromUserId = notification.request.content.data.fromUserId

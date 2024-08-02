@@ -14,13 +14,12 @@ import axios, {
 import { setUser } from "@/state/user"
 import { RESET } from "jotai/utils"
 import Toast from "react-native-toast-message"
+import { API_URL } from "@/constants/api"
 
 type FailedQueueItem = {
   resolve: (token: string) => void
   reject: (error: any) => void
 }
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL
 
 const baseApi: AxiosInstance = axios.create({
   baseURL: API_URL,

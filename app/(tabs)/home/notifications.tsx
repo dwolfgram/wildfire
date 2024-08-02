@@ -69,7 +69,7 @@ const NotificationItem = ({ item }: NotificationItemProps) => {
           />
         </View>
         <ThemedText className="w-[70%]">
-          {NOTIFICATION_CONFIG[item.type].message(item.sender!)}
+          {NOTIFICATION_CONFIG[item.type].message(item.sender!, item.message)}
         </ThemedText>
       </View>
       <Text className="text-gray-400 dark:text-neutral-500">
@@ -85,16 +85,16 @@ const NotificationScreen = () => {
   const { data: notifications, isLoading } = useFetchUsersNotifications({
     limit: 20,
   })
-  const { data } = useFetchUnreadNotificationCount()
+  const { data: unreadCountData } = useFetchUnreadNotificationCount()
   const { mutateAsync: markNotificationsAsSeen } = useMarkNotificationsAsSeen()
   const { resetBadgeCount } = useSetNotificationBadge()
 
   useEffect(() => {
-    if (isFocused && data?.count && data.count > 0) {
+    if (isFocused && unreadCountData?.count && unreadCountData.count > 0) {
       markNotificationsAsSeen()
       resetBadgeCount()
     }
-  }, [isFocused, data?.count])
+  }, [isFocused, unreadCountData?.count])
 
   return (
     <ThemedSafeAreaView className="h-full">

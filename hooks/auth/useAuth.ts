@@ -24,6 +24,7 @@ import { RESET } from "jotai/utils"
 import axios from "axios"
 import { Platform } from "react-native"
 import { isErrorWithMessage } from "@/utils/isErrorWithMessage"
+import { API_URL } from "@/constants/api"
 
 interface Tokens {
   access_token: string
@@ -42,8 +43,6 @@ export interface TokenResponse {
 const redirectUri = makeRedirectUri({
   scheme: "com.wildfire.rn",
 })
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL
 
 export const spotifyConfig: ApiConfig = {
   clientID: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID,
@@ -148,7 +147,7 @@ const useAuth = () => {
       })
       if (!data || (!("spotify_auth" in data) && !("wildfire_token" in data))) {
         console.log("Bad sign in response!")
-        throw new Error("No data returned from token swap.")
+        throw new Error("No data returned from signing in or sign up.")
       }
 
       await setSpotifyAccessToken(data.spotify_auth.access_token)
@@ -198,6 +197,28 @@ const useAuth = () => {
     }
   }
 
+  const signInDemo = async () => {
+    try {
+      setIsSigningIn(true)
+      const { data } = await baseApi.post<TokenResponse>("/auth/login/demo")
+      if (!data || (!("spotify_auth" in data) && !("wildfire_token" in data))) {
+        console.log("Bad sign in response!")
+        throw new Error("No data returned from demo sign in.")
+      }
+
+      await setSpotifyAccessToken(data.spotify_auth.access_token)
+      await setSpotifyRefreshToken(data.spotify_auth.refresh_token)
+      await setAccessToken(data.wildfire_token)
+      await setUser(data.user)
+
+      return data
+    } catch (err) {
+      console.log("Error signing in:", err)
+    } finally {
+      setIsSigningIn(false)
+    }
+  }
+
   const signOut = async () => {
     await setAccessToken("")
     await setSpotifyAccessToken("")
@@ -225,6 +246,7 @@ const useAuth = () => {
   return {
     authenticateSpotify,
     signIn,
+    signInDemo,
     refreshAccessToken,
     spotifyAccessToken,
     spotifyRefreshToken,

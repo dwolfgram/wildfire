@@ -1,4 +1,4 @@
-import { Image, ScrollView, View } from "react-native"
+import { Image, Pressable, ScrollView, View } from "react-native"
 import React from "react"
 import tw from "twrnc"
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5"
@@ -16,7 +16,7 @@ import { useTheme } from "@react-navigation/native"
 WebBrowser.maybeCompleteAuthSession() // required for web only
 
 const LoginScreen = () => {
-  const { signIn, session, isSignedIn, isSigningIn } = useAuth()
+  const { signIn, session, isSignedIn, isSigningIn, signInDemo } = useAuth()
   const theme = useTheme()
 
   if (isSignedIn && session.user && !session.user?.username) {
@@ -80,6 +80,9 @@ const LoginScreen = () => {
           titleStyle={tw`text-[#191414] font-semibold`}
           onPress={async () => await signIn()}
         />
+        <Pressable onPress={signInDemo}>
+          <ThemedText>Sign in to demo account</ThemedText>
+        </Pressable>
       </ScrollView>
     </ThemedSafeAreaView>
   )
