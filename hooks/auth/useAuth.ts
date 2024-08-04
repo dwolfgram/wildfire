@@ -73,7 +73,7 @@ export const spotifyConfig: ApiConfig = {
 
 const MAX_LOGIN_TIMEOUT = () =>
   new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout: Sign in took too long")), 10000)
+    setTimeout(() => reject(new Error("Timeout: Sign in took too long")), 20000)
   )
 
 const useAuth = () => {
@@ -169,7 +169,6 @@ const useAuth = () => {
         authenticateSpotify(),
         MAX_LOGIN_TIMEOUT(),
       ])
-      console.log(session)
       // const formattedTokens = {
       //   access_token: session.accessToken,
       //   refresh_token: session.refreshToken,
@@ -191,28 +190,6 @@ const useAuth = () => {
           text2: "close wildfire and spotify and then reopen and try again",
         })
       }
-      console.log("Error signing in:", err)
-    } finally {
-      setIsSigningIn(false)
-    }
-  }
-
-  const signInDemo = async () => {
-    try {
-      setIsSigningIn(true)
-      const { data } = await baseApi.post<TokenResponse>("/auth/login/demo")
-      if (!data || (!("spotify_auth" in data) && !("wildfire_token" in data))) {
-        console.log("Bad sign in response!")
-        throw new Error("No data returned from demo sign in.")
-      }
-
-      await setSpotifyAccessToken(data.spotify_auth.access_token)
-      await setSpotifyRefreshToken(data.spotify_auth.refresh_token)
-      await setAccessToken(data.wildfire_token)
-      await setUser(data.user)
-
-      return data
-    } catch (err) {
       console.log("Error signing in:", err)
     } finally {
       setIsSigningIn(false)
@@ -246,7 +223,6 @@ const useAuth = () => {
   return {
     authenticateSpotify,
     signIn,
-    signInDemo,
     refreshAccessToken,
     spotifyAccessToken,
     spotifyRefreshToken,

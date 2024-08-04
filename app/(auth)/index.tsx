@@ -9,14 +9,13 @@ import * as WebBrowser from "expo-web-browser"
 import { ThemedText } from "@/components/ThemedText"
 import useAuth from "@/hooks/auth/useAuth"
 import { Redirect } from "expo-router"
-import { SafeAreaView } from "react-native-safe-area-context"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 import { useTheme } from "@react-navigation/native"
 
 WebBrowser.maybeCompleteAuthSession() // required for web only
 
 const LoginScreen = () => {
-  const { signIn, session, isSignedIn, isSigningIn, signInDemo } = useAuth()
+  const { signIn, session, isSignedIn, isSigningIn } = useAuth()
   const theme = useTheme()
 
   if (isSignedIn && session.user && !session.user?.username) {
@@ -80,9 +79,6 @@ const LoginScreen = () => {
           titleStyle={tw`text-[#191414] font-semibold`}
           onPress={async () => await signIn()}
         />
-        <Pressable onPress={signInDemo}>
-          <ThemedText>Sign in to demo account</ThemedText>
-        </Pressable>
       </ScrollView>
     </ThemedSafeAreaView>
   )
