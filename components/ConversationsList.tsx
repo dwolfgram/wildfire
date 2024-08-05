@@ -31,12 +31,23 @@ const ConversationItem = ({
       <Pressable className="active:opacity-60">
         <ThemedView className="flex-row items-center border-b border-gray-50 dark:border-neutral-800 justify-between pb-3 pt-1 mb-2">
           <ThemedView className="flex-row items-center gap-x-2.5">
-            <Image
-              className="rounded-full"
-              source={{ uri: otherUser?.pfp }}
-              height={50}
-              width={50}
-            />
+            <Link
+              href={{
+                pathname: "(tabs)/home/profile",
+                params: { userId: otherUser?.id },
+              }}
+              asChild
+              push
+            >
+              <Pressable className="active:opacity-60">
+                <Image
+                  className="rounded-full"
+                  source={{ uri: otherUser?.pfp }}
+                  height={50}
+                  width={50}
+                />
+              </Pressable>
+            </Link>
             <ThemedText className="text-base">{otherUser?.username}</ThemedText>
           </ThemedView>
           <ThemedView>

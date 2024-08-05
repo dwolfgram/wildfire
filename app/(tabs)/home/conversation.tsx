@@ -50,7 +50,10 @@ const ConversationScreen = () => {
   const { mutateAsync: markConversationAsSeen } = useMarkConversationAsSeen()
 
   const hasUnseenMessages = useMemo(
-    () => conversation?.messages.some((message) => !message.seen),
+    () =>
+      conversation?.messages.some(
+        (message) => !message.seen && message.receiverId === user?.id
+      ),
     [conversation?.messages]
   )
 

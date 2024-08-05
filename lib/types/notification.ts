@@ -1,3 +1,4 @@
+import { Song } from "./song"
 import { User } from "./user"
 
 export enum NotificationType {
@@ -19,4 +20,6 @@ export interface Notification {
   senderId?: string
   sender?: User
   user: User
+  songId?: string
+  song?: Song
 }

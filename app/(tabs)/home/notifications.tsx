@@ -68,9 +68,20 @@ const NotificationItem = ({ item }: NotificationItemProps) => {
             color={"#ffedd5"}
           />
         </View>
-        <ThemedText className="w-[70%]">
-          {NOTIFICATION_CONFIG[item.type].message(item.sender!, item.message)}
-        </ThemedText>
+        <View className="w-[70%]">
+          <ThemedText>
+            {NOTIFICATION_CONFIG[item.type].message(item.sender!, item.message)}
+          </ThemedText>
+          {item.song && (
+            <ThemedText
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              className="text-gray-400 dark:text-neutral-400"
+            >
+              {item.song.name} · {item.song.artistName}
+            </ThemedText>
+          )}
+        </View>
       </View>
       <Text className="text-gray-400 dark:text-neutral-500">
         {getTimeAgo(item.createdAt)}
