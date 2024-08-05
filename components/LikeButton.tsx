@@ -1,4 +1,10 @@
-import { View, Text, Pressable, useColorScheme } from "react-native"
+import {
+  View,
+  Text,
+  Pressable,
+  useColorScheme,
+  ActivityIndicator,
+} from "react-native"
 import React, { useCallback, useMemo } from "react"
 import { AntDesign } from "@expo/vector-icons"
 import { useFetchLikeIds, useLikeSong, useUnlikeSong } from "@/api/queries/song"
@@ -15,7 +21,7 @@ interface LikeButtonProps {
 const LikeButton = ({ size = 32 }: LikeButtonProps) => {
   const { session } = useAuth()
   const [currentSong] = useAtom(currentSongAtom)
-  const { data: likedSongIds } = useFetchLikeIds()
+  const { data: likedSongIds, isFetching } = useFetchLikeIds()
   const { mutateAsync: likeSong } = useLikeSong()
   const { mutateAsync: unlikeSong } = useUnlikeSong()
 
@@ -60,6 +66,10 @@ const LikeButton = ({ size = 32 }: LikeButtonProps) => {
     //   text2: "song has been removed from your spotify likes",
     // })
   }, [currentSong?.spotifyId])
+
+  if (isFetching) {
+    return <ActivityIndicator size={32} />
+  }
 
   return isLiked ? (
     <Pressable

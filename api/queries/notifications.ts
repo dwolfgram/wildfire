@@ -22,7 +22,7 @@ export const useFetchUnreadNotificationCount = () => {
   return useQuery({
     queryKey: notificationQueryKeys.getUnreadCount(),
     queryFn: () => fetchUnreadNotificationCount(),
-    staleTime: 60 * 5 * 1000,
+    staleTime: 1 * 60 * 1000,
     placeholderData: keepPreviousData,
   })
 }

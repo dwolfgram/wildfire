@@ -69,6 +69,9 @@ const usePlayer = () => {
         })
         await playCurrentSong(songs[startIndex])
       } catch (err) {
+        if (isErrorWithMessage(err) && err.message.includes("reauthed")) {
+          setIsPlaying(true)
+        }
         console.log("Error adding to queue and playing")
       }
     },

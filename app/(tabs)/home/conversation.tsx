@@ -1,5 +1,5 @@
 import { FlatList, Pressable, useColorScheme } from "react-native"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 import { ThemedView } from "@/components/ThemedView"
 import { ThemedText } from "@/components/ThemedText"
@@ -49,6 +49,11 @@ const ConversationScreen = () => {
     useFetchConversationByIdQuery(conversationId as string)
   const { mutateAsync: markConversationAsSeen } = useMarkConversationAsSeen()
 
+  const hasUnseenMessages = useMemo(
+    () => conversation?.messages.some((message) => !message.seen),
+    [conversation?.messages]
+  )
+
   const otherUser =
     user?.id === conversation?.userAId
       ? conversation?.userB
@@ -64,14 +69,10 @@ const ConversationScreen = () => {
   )
 
   useEffect(() => {
-    if (
-      isFocused &&
-      conversation?._count?.messages &&
-      conversation._count?.messages > 0
-    ) {
+    if (isFocused && hasUnseenMessages) {
       markConversationAsSeen(conversationId as string)
     }
-  }, [isFocused, conversation?._count?.messages])
+  }, [isFocused])
 
   return (
     <ThemedSafeAreaView className="h-full">
