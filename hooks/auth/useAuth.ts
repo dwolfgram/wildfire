@@ -220,6 +220,28 @@ const useAuth = () => {
     }
   }
 
+  const signInDemo = async () => {
+    try {
+      setIsSigningIn(true)
+      const { data } = await baseApi.post<TokenResponse>("/auth/login/demo")
+      if (!data || (!("spotify_auth" in data) && !("wildfire_token" in data))) {
+        console.log("Bad sign in response!")
+        throw new Error("No data returned from demo sign in.")
+      }
+
+      await setSpotifyAccessToken(data.spotify_auth.access_token)
+      await setSpotifyRefreshToken(data.spotify_auth.refresh_token)
+      await setAccessToken(data.wildfire_token)
+      await setUser(data.user)
+
+      return data
+    } catch (err) {
+      console.log("Error signing in:", err)
+    } finally {
+      setIsSigningIn(false)
+    }
+  }
+
   return {
     authenticateSpotify,
     signIn,
@@ -227,6 +249,7 @@ const useAuth = () => {
     spotifyAccessToken,
     spotifyRefreshToken,
     accessToken,
+    signInDemo,
     isSignedIn,
     isSigningIn,
     signOut,
