@@ -76,7 +76,7 @@ const NotificationItem = ({ item }: NotificationItemProps) => {
             <ThemedText
               numberOfLines={1}
               ellipsizeMode="tail"
-              className="text-gray-400 dark:text-neutral-400"
+              className="text-gray-500 dark:text-neutral-400 text-xs"
             >
               {item.song.name} · {item.song.artistName}
             </ThemedText>

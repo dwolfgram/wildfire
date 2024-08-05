@@ -79,9 +79,9 @@ const LoginScreen = () => {
           titleStyle={tw`text-[#191414] font-semibold`}
           onPress={async () => await signIn()}
         />
-        <Pressable onPress={signInDemo}>
+        {/* <Pressable onPress={signInDemo}>
           <ThemedText>Sign into demo account (apple reviewers only)</ThemedText>
-        </Pressable>
+        </Pressable> */}
       </ScrollView>
     </ThemedSafeAreaView>
   )
