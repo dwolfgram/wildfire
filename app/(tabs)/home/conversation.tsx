@@ -1,5 +1,11 @@
-import { FlatList, Pressable, useColorScheme } from "react-native"
-import React, { useCallback, useEffect, useMemo } from "react"
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  useColorScheme,
+} from "react-native"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 import { ThemedView } from "@/components/ThemedView"
 import { ThemedText } from "@/components/ThemedText"
@@ -45,8 +51,12 @@ const ConversationScreen = () => {
   const { addToQueueAndPlay, currentSong } = usePlayer()
 
   const [user] = useAtom(userAtom)
-  const { data: conversation, isLoading: isLoading } =
-    useFetchConversationByIdQuery(conversationId as string)
+  const {
+    data: conversation,
+    refetch: refetchConversationSongs,
+    isLoading: isLoading,
+    isRefetching,
+  } = useFetchConversationByIdQuery(conversationId as string)
   const { mutateAsync: markConversationAsSeen } = useMarkConversationAsSeen()
 
   const hasUnseenMessages = useMemo(
@@ -96,8 +106,8 @@ const ConversationScreen = () => {
           asChild
         >
           <Pressable>
-            <ThemedText className="font-semibold text-lg">
-              @{otherUser?.username || " "}
+            <ThemedText className="font-semibold text-lg ">
+              {otherUser?.username ? `@${otherUser?.username}` : ""}
             </ThemedText>
           </Pressable>
         </Link>
@@ -109,6 +119,16 @@ const ConversationScreen = () => {
           tw`pt-4 px-5`,
           currentSong && { paddingBottom: 85 },
         ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetchConversationSongs}
+            size={2}
+            tintColor={colorScheme === "dark" ? "#777" : "#e5e7eb"}
+          />
+        }
+        refreshing={isRefetching}
+        onRefresh={refetchConversationSongs}
         data={conversation?.messages}
         renderItem={(props) => (
           <MessageItem handleAddToQueue={handleAddToQueue} {...props} />

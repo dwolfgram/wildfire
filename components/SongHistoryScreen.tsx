@@ -10,6 +10,8 @@ import { Song, SongWithCombinedHistory, TrackType } from "@/lib/types/song"
 import tw from "@/lib/tailwind"
 import { useAtom } from "jotai"
 import { currentSongAtom } from "@/state/player"
+import Avatar from "./Avatar"
+import { User } from "@/lib/types/user"
 
 interface SongHistoryListItemProps {
   item: SongWithCombinedHistory["combinedHistory"][number]
@@ -51,12 +53,9 @@ const SongHistoryRow = ({
         className="active:opacity-60 items-center gap-y-1 w-[33%]"
         hitSlop={10}
       >
-        <Image
-          className="rounded-full"
-          source={{ uri: left.pfp }}
-          width={30}
-          height={30}
-        />
+        <View>
+          <Avatar user={left as User} size={40} />
+        </View>
         <ThemedText className="text-sm" numberOfLines={1} ellipsizeMode="tail">
           {left.username}
         </ThemedText>
@@ -83,7 +82,7 @@ const SongHistoryRow = ({
         </View>
         <Link
           href={{
-            pathname: "(tabs)/home/profile",
+            pathname: profileHref,
             params: { userId: right.id },
           }}
           asChild
@@ -93,12 +92,9 @@ const SongHistoryRow = ({
             className="active:opacity-60 items-center gap-y-1 w-[33%]"
             hitSlop={10}
           >
-            <Image
-              className="rounded-full"
-              source={{ uri: right.pfp }}
-              width={30}
-              height={30}
-            />
+            <View>
+              <Avatar user={right as User} size={40} />
+            </View>
             <ThemedText
               className="text-sm"
               numberOfLines={1}

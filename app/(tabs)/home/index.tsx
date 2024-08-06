@@ -13,7 +13,10 @@ import useUpdateNotificationPushToken from "@/hooks/notifications/useUpdateNotif
 import NotificationIcon from "@/components/NotificationIcon"
 import { View } from "react-native"
 import { useQueryClient } from "@tanstack/react-query"
-import { notificationQueryKeys } from "@/api/queries/notifications"
+import {
+  notificationQueryKeys,
+  useFetchUnreadNotificationCount,
+} from "@/api/queries/notifications"
 import SpotifyWarningModal from "@/components/SpotifyWarningModal"
 import { useAtom } from "jotai"
 import { hasShownSpotifyWarningModalAtom } from "@/state/modals"
@@ -21,6 +24,7 @@ import { NotificationType } from "@/lib/types/notification"
 import { followQueryKeys } from "@/api/queries/follow"
 import useAuth from "@/hooks/auth/useAuth"
 import { userTracksQueryKeys } from "@/api/queries/user-tracks"
+import { userQueryKeys } from "@/api/queries/user"
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -35,8 +39,16 @@ export default function HomeScreen() {
   const [isSpotifyWarningModalOpen, setIsSpotifyWarningModalOpen] = useState(
     !hasShownSpotifyWarningModal
   )
-  const { data: conversations, isFetching: isLoading } =
-    useFetchUserConversationsQuery()
+  const {
+    data: conversations,
+    isFetching: isLoading,
+    isRefetching: isRefetchingConversations,
+    refetch: refetchConversations,
+  } = useFetchUserConversationsQuery()
+  const {
+    refetch: refetchNotificationCount,
+    isRefetching: isRefetchingNotificationCount,
+  } = useFetchUnreadNotificationCount()
   const {
     session: { user },
   } = useAuth()
@@ -48,6 +60,11 @@ export default function HomeScreen() {
 
   const notificationListener = useRef<Notifications.Subscription>()
   const responseListener = useRef<Notifications.Subscription>()
+
+  const handleRefresh = async () => {
+    await refetchConversations()
+    await refetchNotificationCount()
+  }
 
   useEffect(() => {
     const handleTryRegisterNotifications = async () => {
@@ -73,6 +90,8 @@ export default function HomeScreen() {
         if (notificationType === NotificationType.NEW_FOLLOWER) {
           queriesToInvalidate.push(followQueryKeys.getFollowers(user?.id!))
           queriesToInvalidate.push(followQueryKeys.getFollowing(fromUserId))
+          queriesToInvalidate.push(userQueryKeys.me())
+          queriesToInvalidate.push(userQueryKeys.getProfile(fromUserId))
         } else if (notificationType === NotificationType.RECEIVED_SONG) {
           queriesToInvalidate.push(conversationQueryKeys.all)
         } else if (notificationType === NotificationType.ALERT) {
@@ -116,7 +135,14 @@ export default function HomeScreen() {
             <NotificationIcon />
           </View>
         </ThemedView>
-        <ConversationsList data={conversations} isLoading={isLoading} />
+        <ConversationsList
+          onRefresh={handleRefresh}
+          isRefetching={
+            isRefetchingNotificationCount || isRefetchingConversations
+          }
+          data={conversations}
+          isLoading={isLoading}
+        />
       </ThemedSafeAreaView>
       <SpotifyWarningModal
         isOpen={isSpotifyWarningModalOpen}

@@ -2,6 +2,7 @@ import { View, Text, Image, Pressable } from "react-native"
 import React from "react"
 import { Song } from "@/lib/types/song"
 import { Ionicons } from "@expo/vector-icons"
+import Avatar from "../Avatar"
 
 interface TrackHistoryProps {
   history: Song[]
@@ -24,14 +25,9 @@ const TrackHistory = ({ history, onPress }: TrackHistoryProps) => {
           bottom: 10,
         }}
       >
-        <Image
-          className="rounded-full"
-          source={{
-            uri: userToCredit?.pfp,
-          }}
-          height={24}
-          width={24}
-        />
+        <View>
+          <Avatar user={userToCredit!} size={24} textSize={12} />
+        </View>
         <View className="p-[1px] rounded-full absolute bottom-[-5px] right-[-1px] bg-white">
           <Ionicons name="flame-sharp" color={"#ea580c"} size={12} />
         </View>

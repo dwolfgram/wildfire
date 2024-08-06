@@ -1,4 +1,4 @@
-import { FlatList, Image, Pressable } from "react-native"
+import { FlatList, Image, Pressable, View } from "react-native"
 import React from "react"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
@@ -7,6 +7,7 @@ import { User } from "@/lib/types/user"
 import { Link } from "expo-router"
 import { UserSearchResults } from "@/hooks/search/useSearchUsers"
 import usePlayer from "@/hooks/player/usePlayer"
+import Avatar from "./Avatar"
 
 interface SearchUsersListProps {
   data: UserSearchResults
@@ -26,12 +27,9 @@ const SearchUserItem = ({ item: user }: { item: User; index: number }) => {
     >
       <Pressable>
         <ThemedView className="flex-row items-center gap-x-3 border-b border-gray-50 dark:border-neutral-800 py-1.5">
-          <Image
-            className="rounded-full"
-            source={{ uri: user.pfp }}
-            width={50}
-            height={50}
-          />
+          <View>
+            <Avatar user={user} />
+          </View>
           <ThemedView className="w-[200px]">
             <ThemedText
               className="text-base"

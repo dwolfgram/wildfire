@@ -26,6 +26,7 @@ import { FetchFollowersResponse } from "@/api/endpoints/follow"
 import { useSendSong } from "@/api/queries/song"
 import Toast from "react-native-toast-message"
 import { currentSongAtom, isPlayingAtom } from "@/state/player"
+import Avatar from "./Avatar"
 
 const FollowerItem = ({
   item: user,
@@ -41,12 +42,9 @@ const FollowerItem = ({
   return (
     <ThemedView className="items-center justify-center w-1/3 mb-5">
       <Pressable className="relative" onPress={() => selectUser(user.id)}>
-        <Image
-          className="rounded-full mb-1.5"
-          source={{ uri: user.pfp }}
-          height={60}
-          width={60}
-        />
+        <View>
+          <Avatar user={user} size={60} />
+        </View>
         {isSelected && (
           <View className="absolute rounded-full bottom-[-3px] right-[-5px] border-[2px] border-white dark:border-neutral-900">
             <ThemedView className=" bg-orange-600 p-0.5 rounded-full">
@@ -55,7 +53,7 @@ const FollowerItem = ({
           </View>
         )}
       </Pressable>
-      <ThemedText className="font-normal">{user.username}</ThemedText>
+      <ThemedText className="font-normal mt-1">{user.username}</ThemedText>
     </ThemedView>
   )
 }
@@ -206,10 +204,10 @@ const SendSongModal = () => {
           title="send song"
           activeOpacity={0.8}
           disabledStyle={{
-            backgroundColor: theme.dark ? "#333" : "#777",
+            backgroundColor: theme.dark ? "#333" : "#f9fafb",
           }}
           disabledTitleStyle={{
-            color: theme.dark ? "#999" : "#444",
+            color: theme.dark ? "#999" : "#aab4bd",
           }}
           loading={isSending}
           disabled={selectedUsers.length === 0 || isSending}

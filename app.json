@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.wildfire.rn",
-      "buildNumber": "7",
+      "buildNumber": "8",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"

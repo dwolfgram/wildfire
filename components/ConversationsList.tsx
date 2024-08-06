@@ -1,13 +1,15 @@
 import tw from "@/lib/tailwind"
 import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter } from "expo-router"
-import { FlatList, Image, Pressable, Text, View } from "react-native"
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
 import { getTimeAgo } from "@/utils/getTimeAgo"
 import { Conversation } from "@/lib/types/conversation"
 import { useAtom } from "jotai"
 import { userAtom } from "@/state/user"
+import Avatar from "./Avatar"
+import { useTheme } from "@react-navigation/native"
 
 const ConversationItem = ({
   item: conversation,
@@ -31,24 +33,23 @@ const ConversationItem = ({
       <Pressable className="active:opacity-60">
         <ThemedView className="flex-row items-center border-b border-gray-50 dark:border-neutral-800 justify-between pb-3 pt-1 mb-2">
           <ThemedView className="flex-row items-center gap-x-2.5">
-            <Link
-              href={{
-                pathname: "(tabs)/home/profile",
-                params: { userId: otherUser?.id },
-              }}
-              asChild
-              push
-            >
-              <Pressable className="active:opacity-60">
-                <Image
-                  className="rounded-full"
-                  source={{ uri: otherUser?.pfp }}
-                  height={50}
-                  width={50}
-                />
-              </Pressable>
-            </Link>
-            <ThemedText className="text-base">{otherUser?.username}</ThemedText>
+            <View>
+              <Link
+                href={{
+                  pathname: "(tabs)/home/profile",
+                  params: { userId: otherUser?.id },
+                }}
+                asChild
+                push
+              >
+                <Pressable className="active:opacity-60">
+                  <Avatar user={otherUser!} />
+                </Pressable>
+              </Link>
+            </View>
+            <ThemedText className="text-base">
+              @{otherUser?.username}
+            </ThemedText>
           </ThemedView>
           <ThemedView>
             <ThemedText className="text-sm text-gray-500 dark:text-neutral-500 my-0.5">
@@ -71,9 +72,17 @@ const ConversationItem = ({
 interface ConversationListProps {
   data: Conversation[] | undefined
   isLoading: boolean
+  onRefresh: () => void
+  isRefetching: boolean
 }
 
-const ConversationsList = ({ data, isLoading }: ConversationListProps) => {
+const ConversationsList = ({
+  data,
+  isLoading,
+  isRefetching,
+  onRefresh,
+}: ConversationListProps) => {
+  const theme = useTheme()
   const [user] = useAtom(userAtom)
   const router = useRouter()
 
@@ -83,6 +92,16 @@ const ConversationsList = ({ data, isLoading }: ConversationListProps) => {
       contentContainerStyle={tw`pt-2`}
       data={data}
       renderItem={(props) => <ConversationItem userId={user?.id!} {...props} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={onRefresh}
+          size={12}
+          tintColor={theme.dark ? "#777" : "#e5e7eb"}
+        />
+      }
+      refreshing={isRefetching}
+      onRefresh={onRefresh}
       ListHeaderComponent={
         <View>
           <Pressable

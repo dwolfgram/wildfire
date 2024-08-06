@@ -22,7 +22,11 @@ const LoginScreen = () => {
     return <Redirect href="(auth)/username" />
   }
 
-  if (isSignedIn && session.user?.username && !session.user?.discoverWeeklyId) {
+  if (
+    isSignedIn &&
+    session.user?.username &&
+    !session.user?.discoverWeeklySelected
+  ) {
     return <Redirect href="(auth)/choose-discover-weekly" />
   }
 

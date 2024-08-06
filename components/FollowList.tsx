@@ -1,4 +1,4 @@
-import { FlatList, Image, Pressable } from "react-native"
+import { FlatList, Image, Pressable, View } from "react-native"
 import React from "react"
 import { ThemedView } from "./ThemedView"
 import { ThemedText } from "./ThemedText"
@@ -8,6 +8,7 @@ import { Link } from "expo-router"
 import { Button } from "@rneui/themed"
 import { useAtom } from "jotai"
 import { userAtom } from "@/state/user"
+import Avatar from "./Avatar"
 
 type DataType = User & {
   isFollowingBack: boolean
@@ -44,12 +45,9 @@ const FollowItem = ({
       <Pressable>
         <ThemedView className="flex-row items-center justify-between border-b border-gray-50 dark:border-neutral-800 py-1.5">
           <ThemedView className="flex-row items-center gap-x-3">
-            <Image
-              className="rounded-full"
-              source={{ uri: user.pfp }}
-              width={50}
-              height={50}
-            />
+            <View>
+              <Avatar user={user} />
+            </View>
             <ThemedView className="w-[200px]">
               <ThemedText
                 className="text-lg"

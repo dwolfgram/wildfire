@@ -45,7 +45,11 @@ const MiniPlayer = ({
             <ThemedText numberOfLines={1} ellipsizeMode="tail" className="">
               {currentSong?.name}
             </ThemedText>
-            <ThemedText className="text-gray-500 dark:text-neutral-400 text-sm">
+            <ThemedText
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              className="text-gray-500 dark:text-neutral-400 text-sm"
+            >
               {currentSong?.artistName}
             </ThemedText>
           </View>

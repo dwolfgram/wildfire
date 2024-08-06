@@ -25,6 +25,7 @@ export interface User {
   receivedConversations?: Conversation[]
   notificationToken?: string
   discoverWeeklyId?: string
+  discoverWeeklySelected: boolean
   _count?: {
     following: number
     followers: number

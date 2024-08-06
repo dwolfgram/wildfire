@@ -19,7 +19,11 @@ const UsernameScreen = () => {
   const [isSignedIn] = useAtom(isSignedInAtom)
   const { setUsername, createUsername, username, error } = useCreateUsername()
 
-  if (isSignedIn && user?.username && !user?.discoverWeeklyId) {
+  if (!isSignedIn) {
+    return <Redirect href="(auth)" />
+  }
+
+  if (isSignedIn && user?.username && !user?.discoverWeeklySelected) {
     return <Redirect href="(auth)/choose-discover-weekly" />
   }
 
@@ -50,10 +54,10 @@ const UsernameScreen = () => {
             buttonStyle={tw`bg-orange-600 rounded-md py-2`}
             titleStyle={tw`font-semibold text-base`}
             disabledStyle={{
-              backgroundColor: theme.dark ? "#333" : "#777",
+              backgroundColor: theme.dark ? "#333" : "#f9fafb",
             }}
             disabledTitleStyle={{
-              color: theme.dark ? "#999" : "#444",
+              color: theme.dark ? "#999" : "#aab4bd",
             }}
             title="done"
             activeOpacity={0.8}

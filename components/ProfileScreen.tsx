@@ -1,14 +1,15 @@
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
   ScrollView,
   Text,
   useColorScheme,
   View,
 } from "react-native"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ThemedView } from "./ThemedView"
-import { Avatar, Button } from "@rneui/themed"
+import { Button } from "@rneui/themed"
 import { ThemedText } from "./ThemedText"
 import tw from "twrnc"
 import { Link, useLocalSearchParams, usePathname, useRouter } from "expo-router"
@@ -24,8 +25,11 @@ import {
   useFetchUserTracksByType,
   useFetchWildfireWeeklyQuery,
 } from "@/api/queries/user-tracks"
-import { TrackType } from "@/lib/types/song"
+import { Song, TrackType } from "@/lib/types/song"
 import useAuth from "@/hooks/auth/useAuth"
+import Avatar from "./Avatar"
+import { User } from "@/lib/types/user"
+import { FlashList } from "@shopify/flash-list"
 
 interface ProfileScreenProps {
   linkHref: string
@@ -45,6 +49,7 @@ const trackTypesFromPlaylistTypes: any = {
 }
 
 const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
+  const flatListRef = useRef<FlashList<Song>>(null)
   const colorScheme = useColorScheme()
   const { userId } = useLocalSearchParams<{ userId: string }>()
   const [playlistType, setPlaylistType] = useState(PLAYLIST_TYPES.likes)
@@ -55,8 +60,12 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
   const router = useRouter()
   const path = usePathname()
 
-  const { data: userProfile, isFetching: isLoadingProfile } =
-    useFetchUserProfileQuery((userId || user?.id) ?? "")
+  const {
+    data: userProfile,
+    isFetching: isLoadingProfile,
+    refetch: refetchProfile,
+    isRefetching: isRefetchingProfile,
+  } = useFetchUserProfileQuery((userId || user?.id) ?? "")
   const { mutateAsync: followUser, isPending: isFollowInProgress } =
     useFollowUser()
   const { mutateAsync: unfollowUser, isPending: isUnfollowInProgress } =
@@ -67,14 +76,19 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
     isLoading,
     hasNextPage,
     isFetchingNextPage,
+    refetch: refetchTracks,
+    isRefetching: isRefetchingTracks,
   } = useFetchUserTracksByType(
     userId || user?.id!,
     trackTypesFromPlaylistTypes[playlistType],
     { limit: 20 }
   )
-
   const { data: wildfireTracks, isLoading: isLoadingWildfireWeekly } =
     useFetchWildfireWeeklyQuery(userId || user?.id!)
+
+  const handleScrollToTop = () => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
+  }
 
   const handleButtonPress = useCallback(async () => {
     if (userProfile?.isFollowing) {
@@ -83,6 +97,11 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
       await followUser(userId!)
     }
   }, [userId, userProfile?.isFollowing, followUser, unfollowUser])
+
+  const handleRefresh = async () => {
+    await refetchProfile()
+    await refetchTracks()
+  }
 
   return (
     <ThemedSafeAreaView
@@ -99,9 +118,11 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
             />
           )}
         </Pressable>
-        <ThemedText className="font-semibold text-lg">
-          @{userProfile?.username}
-        </ThemedText>
+        <Pressable onPress={handleScrollToTop}>
+          <ThemedText className="font-semibold text-lg">
+            {userProfile?.username ? `@${userProfile?.username}` : ""}
+          </ThemedText>
+        </Pressable>
         <ThemedView className="min-w-[20px]"></ThemedView>
       </ThemedView>
       <ThemedView className="px-5 h-full flex-1">
@@ -111,8 +132,11 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
               ? wildfireTracks
               : userTracks?.pages.flatMap((page) => page)) || []
           }
+          ref={flatListRef}
           isLoading={isLoading}
           linkHref={linkHref}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefetchingProfile || isRefetchingTracks}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) {
               fetchNextPage()
@@ -128,11 +152,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
             <>
               <ThemedView className="pb-3 border-b border-gray-100 dark:border-neutral-800">
                 <ThemedView className="items-center justify-center mt-3">
-                  <Avatar
-                    size={55}
-                    rounded
-                    source={{ uri: userProfile?.pfp }}
-                  />
+                  <Avatar user={userProfile as User} size={55} />
                   <ThemedText className="text-base font-medium mt-2">
                     {userProfile?.displayName?.toLowerCase()}
                   </ThemedText>
@@ -205,11 +225,15 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
                     isUnfollowInProgress ||
                     isLoadingProfile
                   }
+                  loadingProps={{
+                    color: colorScheme === "dark" ? "#eee" : "#000",
+                  }}
                   disabledStyle={{
-                    backgroundColor: colorScheme === "dark" ? "#333" : "#777",
+                    backgroundColor:
+                      colorScheme === "dark" ? "#333" : "#f9fafb",
                   }}
                   disabledTitleStyle={{
-                    color: colorScheme === "dark" ? "#999" : "#444",
+                    color: colorScheme === "dark" ? "#999" : "#aab4bd",
                   }}
                   disabled={
                     isFollowInProgress ||

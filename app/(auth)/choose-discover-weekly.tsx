@@ -9,6 +9,9 @@ import tw from "@/lib/tailwind"
 import { Ionicons } from "@expo/vector-icons"
 import { Button } from "@rneui/themed"
 import useSelectDiscoverWeekly from "@/hooks/user/useSelectDiscoverWeekly"
+import { useAtom } from "jotai"
+import { isSignedInAtom } from "@/state/auth"
+import { Redirect } from "expo-router"
 
 const PlaylistItem = ({
   item: playlist,
@@ -65,8 +68,10 @@ const PlaylistItem = ({
 }
 
 const ChooseDiscoverWeeklyScreen = () => {
-  const { data: playlists, isFetching } = useFetchUserDiscoverWeeklyPlaylists()
   const [selectedPlaylistId, setSelectedPlaylistId] = useState("")
+  const [isSignedIn] = useAtom(isSignedInAtom)
+
+  const { data: playlists, isFetching } = useFetchUserDiscoverWeeklyPlaylists()
   const { selectDiscoverWeekly, isLoading } = useSelectDiscoverWeekly()
 
   const handleSelectedPlaylist = (id: string) => {
@@ -75,6 +80,10 @@ const ChooseDiscoverWeeklyScreen = () => {
       return
     }
     setSelectedPlaylistId(id)
+  }
+
+  if (!isSignedIn) {
+    return <Redirect href="(auth)" />
   }
 
   return (

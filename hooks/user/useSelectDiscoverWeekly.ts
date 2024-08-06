@@ -16,6 +16,7 @@ const useSelectDiscoverWeekly = () => {
       }
       const { data } = await baseApi.patch<User>("/user/update", {
         discoverWeeklyId: playlistId,
+        discoverWeeklySelected: true,
       })
       await setUser({
         ...user,

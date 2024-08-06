@@ -1,4 +1,10 @@
-import { View, Text, FlatList, Pressable } from "react-native"
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+} from "react-native"
 import React, { useEffect } from "react"
 import { ThemedSafeAreaView } from "@/components/ThemedSafeAreaView"
 import {
@@ -16,6 +22,8 @@ import { useIsFocused, useTheme } from "@react-navigation/native"
 import { User } from "@/lib/types/user"
 import { getTimeAgo } from "@/utils/getTimeAgo"
 import useSetNotificationBadge from "@/hooks/notifications/useSetNotificationBadge"
+import { useAtom } from "jotai"
+import { currentSongAtom } from "@/state/player"
 
 interface NotificationItemProps {
   item: Notification
@@ -24,25 +32,27 @@ interface NotificationItemProps {
 const NOTIFICATION_CONFIG = {
   [NotificationType.RECEIVED_SONG]: {
     icon: "musical-notes",
-    message: (user: User) => `@${user.username} sent you a song`,
+    message: (item: Notification) =>
+      `@${item.sender?.username} sent you a song`,
   },
   [NotificationType.NEW_FOLLOWER]: {
     icon: "person-add",
-    message: (user: User) => `@${user.username} started following you`,
+    message: (item: Notification) =>
+      `@${item.sender?.username} started following you`,
   },
   [NotificationType.ALERT]: {
     icon: "information-circle",
-    message: (user: User, message?: string) => `${message}`,
+    message: (item: Notification) => `${item.message}`,
   },
   [NotificationType.LIKED_SONG]: {
     icon: "heart",
-    message: (user: User) =>
-      `you helped @${user.username} find a song they liked`,
+    message: (item: Notification) =>
+      `@${item.sender?.username} liked your song`,
   },
   [NotificationType.SHARED_SONG]: {
     icon: "flame",
-    message: (user: User) =>
-      `@${user.username} sent a song they found because of you`,
+    message: (item: Notification) =>
+      `@${item.sender?.username} shared your song with @${item.song?.receiver?.username}`,
   },
 }
 
@@ -70,7 +80,7 @@ const NotificationItem = ({ item }: NotificationItemProps) => {
         </View>
         <View className="w-[70%]">
           <ThemedText>
-            {NOTIFICATION_CONFIG[item.type].message(item.sender!, item.message)}
+            {NOTIFICATION_CONFIG[item.type].message(item)}
           </ThemedText>
           {item.song && (
             <ThemedText
@@ -93,12 +103,19 @@ const NotificationItem = ({ item }: NotificationItemProps) => {
 const NotificationScreen = () => {
   const theme = useTheme()
   const isFocused = useIsFocused()
-  const { data: notifications, isLoading } = useFetchUsersNotifications({
+  const {
+    data: notifications,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFetchUsersNotifications({
     limit: 20,
   })
   const { data: unreadCountData } = useFetchUnreadNotificationCount()
   const { mutateAsync: markNotificationsAsSeen } = useMarkNotificationsAsSeen()
   const { resetBadgeCount } = useSetNotificationBadge()
+  const [currentSong] = useAtom(currentSongAtom)
 
   useEffect(() => {
     if (isFocused && unreadCountData?.count && unreadCountData.count > 0) {
@@ -122,7 +139,10 @@ const NotificationScreen = () => {
       </ThemedView>
       <FlatList
         keyExtractor={(item) => item.id}
-        contentContainerStyle={tw`pt-2 px-5`}
+        contentContainerStyle={[
+          tw`pt-2 px-5`,
+          currentSong && { paddingBottom: 40 },
+        ]}
         data={notifications?.pages.flatMap((page) => page) || []}
         renderItem={NotificationItem}
         ListEmptyComponent={
@@ -131,6 +151,17 @@ const NotificationScreen = () => {
               {isLoading ? "loading..." : "no notifications"}
             </ThemedText>
           </ThemedView>
+        }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <ActivityIndicator className="mt-3" size="small" />
+          ) : undefined
         }
         showsVerticalScrollIndicator={false}
       />
