@@ -57,7 +57,7 @@ export const useFetchWildfireWeeklyQuery = (
     queryFn: () => fetchWildfireWeekly(userId),
     placeholderData: keepPreviousData,
     enabled: !!userId && playlistType === PLAYLIST_TYPES.wildfire,
-    staleTime: 1,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
