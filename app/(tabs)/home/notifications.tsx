@@ -125,7 +125,10 @@ const NotificationScreen = () => {
   }, [isFocused, unreadCountData?.count])
 
   return (
-    <ThemedSafeAreaView className="h-full">
+    <ThemedSafeAreaView
+      edges={{ bottom: "off", top: "maximum" }}
+      className="h-full"
+    >
       <ThemedView className="flex-row items-center justify-between mt-1 px-5">
         <Pressable onPress={() => router.back()} className="min-w-[20px]">
           <Ionicons
@@ -141,7 +144,7 @@ const NotificationScreen = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           tw`pt-2 px-5`,
-          currentSong && { paddingBottom: 40 },
+          currentSong && { paddingBottom: 80 },
         ]}
         data={notifications?.pages.flatMap((page) => page) || []}
         renderItem={NotificationItem}

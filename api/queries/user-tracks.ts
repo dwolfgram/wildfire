@@ -3,7 +3,6 @@ import {
   useInfiniteQuery,
   useQuery,
 } from "@tanstack/react-query"
-import { fetchUserProfile } from "../endpoints/user"
 import useAuth from "@/hooks/auth/useAuth"
 import {
   fetchUserDiscoverWeeklyPlaylists,
@@ -11,6 +10,7 @@ import {
   fetchWildfireWeekly,
 } from "../endpoints/user-tracks"
 import { TrackType } from "@/lib/types/song"
+import { PLAYLIST_TYPES } from "@/lib/types/playlist"
 
 const isValidTrackType = (trackType: any): trackType is TrackType => {
   if (!trackType) return false
@@ -48,12 +48,16 @@ export const useFetchUserTracksByType = (
   })
 }
 
-export const useFetchWildfireWeeklyQuery = (userId: string) => {
+export const useFetchWildfireWeeklyQuery = (
+  userId: string,
+  playlistType: PLAYLIST_TYPES
+) => {
   return useQuery({
     queryKey: userTracksQueryKeys.wildfireWeekly(userId),
     queryFn: () => fetchWildfireWeekly(userId),
     placeholderData: keepPreviousData,
-    enabled: !!userId,
+    enabled: !!userId && playlistType === PLAYLIST_TYPES.wildfire,
+    staleTime: 1,
   })
 }
 

@@ -7,15 +7,15 @@ import usePlayer from "@/hooks/player/usePlayer"
 import Track from "./Track"
 import { Song } from "@/lib/types/song"
 import { filterDuplicates } from "@/utils/filterDuplicates"
-import { RefreshControl } from "react-native"
+import { RefreshControl, View } from "react-native"
 import { useTheme } from "@react-navigation/native"
 
 interface UserTrackListProps {
   data: Song[] | null
   isLoading: boolean
   linkHref: string
-  onRefresh: () => void
-  isRefreshing: boolean
+  onRefresh?: () => void
+  isRefreshing?: boolean
   onEndReached?: () => void
   onEndReachedThreshold?: number
   footer?: ReactElement
@@ -92,16 +92,20 @@ const UserTrackList = forwardRef<FlashList<Song>, UserTrackListProps>(
         estimatedItemSize={63}
         removeClippedSubviews
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            size={12}
-            tintColor={theme.dark ? "#777" : "#e5e7eb"}
-          />
+          onRefresh && isRefreshing ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              size={12}
+              tintColor={theme.dark ? "#777" : "#e5e7eb"}
+            />
+          ) : undefined
         }
         onRefresh={onRefresh}
         refreshing={isRefreshing}
-        contentContainerStyle={{ paddingBottom: currentSong ? 80 : 20 }}
+        contentContainerStyle={{
+          paddingBottom: currentSong ? 80 : 0,
+        }}
         ListHeaderComponent={header}
         ListEmptyComponent={
           <ThemedView className="items-center justify-center pt-4">

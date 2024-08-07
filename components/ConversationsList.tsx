@@ -10,6 +10,7 @@ import { useAtom } from "jotai"
 import { userAtom } from "@/state/user"
 import Avatar from "./Avatar"
 import { useTheme } from "@react-navigation/native"
+import { currentSongAtom } from "@/state/player"
 
 const ConversationItem = ({
   item: conversation,
@@ -84,12 +85,13 @@ const ConversationsList = ({
 }: ConversationListProps) => {
   const theme = useTheme()
   const [user] = useAtom(userAtom)
+  const [currentSong] = useAtom(currentSongAtom)
   const router = useRouter()
 
   return (
     <FlatList
       keyExtractor={(item) => item.id}
-      contentContainerStyle={tw`pt-2`}
+      contentContainerStyle={[tw`pt-2`, currentSong && { paddingBottom: 85 }]}
       data={data}
       renderItem={(props) => <ConversationItem userId={user?.id!} {...props} />}
       refreshControl={

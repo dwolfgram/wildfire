@@ -127,7 +127,10 @@ export default function HomeScreen() {
 
   return (
     <>
-      <ThemedSafeAreaView className="h-full px-5">
+      <ThemedSafeAreaView
+        edges={{ bottom: "off", top: "maximum" }}
+        className="h-full px-5"
+      >
         <ThemedView className="flex-row items-center justify-between mt-1 px-3">
           <ThemedView className="min-w-[20px]"></ThemedView>
           <ThemedText className="font-semibold text-lg">home</ThemedText>

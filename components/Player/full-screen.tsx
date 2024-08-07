@@ -101,7 +101,7 @@ const FullScreenPlayer = ({
           className="my-4 w-full self-center"
         />
         <View className="flex-row justify-between items-center">
-          <View className="w-[75%]">
+          <View className="w-[70%]">
             <View className="flex-row items-center">
               <ThemedText
                 className="text-xl font-semibold"

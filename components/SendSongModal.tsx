@@ -88,7 +88,7 @@ const SendSongModal = () => {
     [selectedUsers]
   )
 
-  const handleSendSong = async () => {
+  const handleSendSong = useCallback(async () => {
     const sentSongs = await sendSong({
       toUserIds: selectedUsers,
       songData: song,
@@ -108,7 +108,7 @@ const SendSongModal = () => {
         visibilityTime: 5000,
       })
     }
-  }
+  }, [selectedUsers, song, historySongIds])
 
   // useEffect(() => {
   //   if (isError) {

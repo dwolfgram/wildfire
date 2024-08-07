@@ -30,16 +30,10 @@ import useAuth from "@/hooks/auth/useAuth"
 import Avatar from "./Avatar"
 import { User } from "@/lib/types/user"
 import { FlashList } from "@shopify/flash-list"
+import { PLAYLIST_TYPES } from "@/lib/types/playlist"
 
 interface ProfileScreenProps {
   linkHref: string
-}
-
-enum PLAYLIST_TYPES {
-  "likes" = "likes",
-  "top" = "top monthly listens",
-  "discover" = "spotify discover weekly",
-  "wildfire" = "wildfire weekly",
 }
 
 const trackTypesFromPlaylistTypes: any = {
@@ -84,7 +78,7 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
     { limit: 20 }
   )
   const { data: wildfireTracks, isLoading: isLoadingWildfireWeekly } =
-    useFetchWildfireWeeklyQuery(userId || user?.id!)
+    useFetchWildfireWeeklyQuery(userId || user?.id!, playlistType)
 
   const handleScrollToTop = () => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
@@ -129,11 +123,14 @@ const ProfileScreen = ({ linkHref }: ProfileScreenProps) => {
         <UserTrackList
           data={
             (playlistType === PLAYLIST_TYPES.wildfire
-              ? wildfireTracks
+              ? wildfireTracks?.map((track) => ({
+                  ...track,
+                  sender: { username: track.user?.username },
+                }))
               : userTracks?.pages.flatMap((page) => page)) || []
           }
           ref={flatListRef}
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingWildfireWeekly}
           linkHref={linkHref}
           onRefresh={handleRefresh}
           isRefreshing={isRefetchingProfile || isRefetchingTracks}

@@ -32,7 +32,6 @@ const MessageItem = ({
   handleAddToQueue: (index: number) => void
   index: number
 }) => {
-  console.log("history:", song.history)
   return (
     <Track
       onPress={() => handleAddToQueue(index)}

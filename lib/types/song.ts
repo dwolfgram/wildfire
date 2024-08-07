@@ -16,11 +16,11 @@ export type SongWithCombinedHistory = Partial<Song> & {
 export interface Song {
   id: string
   userId?: string
-  user?: User
+  user?: Partial<User>
   senderId?: string
-  sender?: User
+  sender?: Partial<User>
   receiverId?: string
-  receiver?: User
+  receiver?: Partial<User>
   spotifyId: string
   albumImage: string
   albumName: string

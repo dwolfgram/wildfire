@@ -1,5 +1,5 @@
 import { Pressable } from "react-native"
-import React from "react"
+import React, { useMemo } from "react"
 import { Link } from "expo-router"
 import { Song } from "@/lib/types/song"
 import { Ionicons } from "@expo/vector-icons"
@@ -19,7 +19,18 @@ const SendButton = ({ track, size = 34, href, onPress }: SendButtonProps) => {
   const isDBSong = Boolean(track.id)
   const userId = session.user?.id
   const userDoesOwnSong = track.senderId === userId || track.userId === userId
-  const historySongIds = track.history?.map((song) => song.id) || []
+  const historySongIds = useMemo(
+    () =>
+      track.history
+        ? track.history
+            .filter(
+              (s) =>
+                s.senderId !== session.user?.id && s.userId !== session.user?.id
+            )
+            .map((song) => song.id)
+        : [],
+    [track.history, session.user?.id]
+  )
 
   return (
     <Link
@@ -30,7 +41,7 @@ const SendButton = ({ track, size = 34, href, onPress }: SendButtonProps) => {
           historySongIds:
             isDBSong && !userDoesOwnSong
               ? JSON.stringify([...historySongIds, track.id])
-              : undefined,
+              : JSON.stringify(historySongIds),
         },
       }}
       asChild

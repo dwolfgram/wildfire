@@ -41,14 +41,20 @@ const LikeButton = ({ size = 32 }: LikeButtonProps) => {
     const userId = session.user?.id
     const userDoesOwnSong =
       currentSong?.senderId === userId || currentSong?.userId === userId
-    const historySongIds = currentSong?.history?.map((song) => song.id) || []
+    const historySongIds =
+      currentSong?.history
+        ?.filter(
+          (s) =>
+            s.senderId !== session.user?.id && s.userId !== session.user?.id
+        )
+        .map((song) => song.id) || []
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     await likeSong({
       songData: currentSong!,
       historySongIds:
         isDBSong && !userDoesOwnSong
           ? [...historySongIds, currentSong?.id!]
-          : [],
+          : historySongIds,
     })
     Toast.show({
       type: "success",
